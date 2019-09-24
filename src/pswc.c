@@ -4,6 +4,7 @@
 
 int execCmd() {
 
+    return 0;
 }
 
 /*!
