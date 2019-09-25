@@ -1,11 +1,7 @@
+// gcc -O3 -Wall pswc.c -o pswc.o
 #include <stdio.h>
 #include <stdlib.h>
 #include "pswc.h"
-
-int execCmd() {
-
-    return 0;
-}
 
 /*!
  * Entry-point
