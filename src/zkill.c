@@ -4,6 +4,11 @@
 #include <unistd.h>
 #include "zkill.h"
 
+static int treeProcFS() {
+
+    return EXIT_SUCCESS;
+}
+
 /*!
  * Parse command line arguments.
  *
@@ -30,6 +35,6 @@ int main(int argc, char *argv[]) {
     /* Parse command line arguments. */
     if(parseArgs(argc, argv))
         return EXIT_SUCCESS;
-
+    treeProcFS();
     return EXIT_SUCCESS;
 }
