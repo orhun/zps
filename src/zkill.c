@@ -15,7 +15,7 @@ static int showProcEntry(const char *fpath, const struct stat *sb,
         (tflag == FTW_SLN) ? "sln" : "???",
         ftwbuf->level, (intmax_t) sb->st_size,
         fpath, ftwbuf->base, fpath + ftwbuf->base);
-    return EXIT_SUCCESS;
+    return FTW_CONTINUE;
 }
 
 static int treeProcFS() {
