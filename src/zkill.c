@@ -8,4 +8,5 @@
  */
 int main(int argc, char *argv[]) {
     fprintf(stderr, "zkill v%s\n", VERSION);
+    return EXIT_SUCCESS;
 }
