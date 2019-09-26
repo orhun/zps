@@ -1,12 +1,25 @@
 // gcc -O3 -Wall zkill.c -o zkill.o
+#include "zkill.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "zkill.h"
+#include <stdint.h>
+#include <ftw.h>
+
+static int showProcEntry(const char *fpath, const struct stat *sb,
+                   int tflag, struct FTW *ftwbuf) {
+    printf("%-3s %2d %7jd   %-40s %d %s\n",
+        (tflag == FTW_D) ?   "d"   : (tflag == FTW_DNR) ? "dnr" :
+        (tflag == FTW_DP) ?  "dp"  : (tflag == FTW_F) ?   "f" :
+        (tflag == FTW_NS) ?  "ns"  : (tflag == FTW_SL) ?  "sl" :
+        (tflag == FTW_SLN) ? "sln" : "???",
+        ftwbuf->level, (intmax_t) sb->st_size,
+        fpath, ftwbuf->base, fpath + ftwbuf->base);
+    return EXIT_SUCCESS;
+}
 
 static int treeProcFS() {
-
-    return EXIT_SUCCESS;
+    return nftw(PROC_FS, showProcEntry, USE_FDS, FTW_PHYS);
 }
 
 /*!
@@ -35,6 +48,7 @@ int main(int argc, char *argv[]) {
     /* Parse command line arguments. */
     if(parseArgs(argc, argv))
         return EXIT_SUCCESS;
-    treeProcFS();
+    if (treeProcFS())
+        return EXIT_SUCCESS;
     return EXIT_SUCCESS;
 }
