@@ -6,15 +6,14 @@
 #include <string.h>
 #include <ftw.h>
 
-char *strPath;
+static char *strPath;
 
-static int showProcEntry(const char *fpath, const struct stat *sb,
+static int procEntryRecv(const char *fpath, const struct stat *sb,
                    int tflag, struct FTW *ftwbuf) {
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
         !strcmp(strPath, "")) {
-        printf("%s %d %s\n",
-            fpath, ftwbuf->level, fpath + ftwbuf->base);
+        printf("[%s]\n", fpath + ftwbuf->base);
     }
     return EXIT_SUCCESS;
 }
@@ -45,7 +44,7 @@ int main(int argc, char *argv[]) {
     /* Parse command line arguments. */
     if(parseArgs(argc, argv))
         return EXIT_SUCCESS;
-    if (nftw(PROC_FS, showProcEntry, USE_FDS, FTW_PHYS))
-        return EXIT_SUCCESS;
+    if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS) == -1)
+        return EXIT_FAILURE;
     return EXIT_SUCCESS;
 }
