@@ -15,11 +15,8 @@ static int showProcEntry(const char *fpath, const struct stat *sb,
         (tflag == FTW_SLN) ? "sln" : "???",
         ftwbuf->level, (intmax_t) sb->st_size,
         fpath, ftwbuf->base, fpath + ftwbuf->base);
+    
     return FTW_CONTINUE;
-}
-
-static int treeProcFS() {
-    return nftw(PROC_FS, showProcEntry, USE_FDS, FTW_PHYS);
 }
 
 /*!
@@ -48,7 +45,7 @@ int main(int argc, char *argv[]) {
     /* Parse command line arguments. */
     if(parseArgs(argc, argv))
         return EXIT_SUCCESS;
-    if (treeProcFS())
+    if (nftw(PROC_FS, showProcEntry, USE_FDS, FTW_PHYS))
         return EXIT_SUCCESS;
     return EXIT_SUCCESS;
 }
