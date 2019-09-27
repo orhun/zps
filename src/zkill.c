@@ -3,20 +3,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdint.h>
+#include <string.h>
 #include <ftw.h>
+
+char *strPath;
 
 static int showProcEntry(const char *fpath, const struct stat *sb,
                    int tflag, struct FTW *ftwbuf) {
-    printf("%-3s %2d %7jd   %-40s %d %s\n",
-        (tflag == FTW_D) ?   "d"   : (tflag == FTW_DNR) ? "dnr" :
-        (tflag == FTW_DP) ?  "dp"  : (tflag == FTW_F) ?   "f" :
-        (tflag == FTW_NS) ?  "ns"  : (tflag == FTW_SL) ?  "sl" :
-        (tflag == FTW_SLN) ? "sln" : "???",
-        ftwbuf->level, (intmax_t) sb->st_size,
-        fpath, ftwbuf->base, fpath + ftwbuf->base);
-    
-    return FTW_CONTINUE;
+    if (ftwbuf->level == 1 && tflag == FTW_D &&
+        strtol(fpath + ftwbuf->base, &strPath, 10) &&
+        !strcmp(strPath, "")) {
+        printf("%s %d %s\n",
+            fpath, ftwbuf->level, fpath + ftwbuf->base);
+    }
+    return EXIT_SUCCESS;
 }
 
 /*!
