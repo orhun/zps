@@ -6,10 +6,22 @@
 #include <string.h>
 #include <ftw.h>
 
-static char *strPath;
+static char *strPath; /* String part of a path in '/proc' */
 
+/*!
+ * Event for receiving tree entry from '/proc'.
+ *
+ * \param fpath  (pathname of the entry)
+ * \param sb     (file status structure for fpath)
+ * \param tflag  (type flag of the entry)
+ * \param ftwbuf (structure that contains entry base and level)
+ * \return EXIT_status
+ */
 static int procEntryRecv(const char *fpath, const struct stat *sb,
-                   int tflag, struct FTW *ftwbuf) {
+		int tflag, struct FTW *ftwbuf) {
+	/* Check for depth of the fpath (1), type of the entry (directory),
+	 * base of the fpath (numeric value) to filter entries except PID.
+	 */
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
         !strcmp(strPath, "")) {
@@ -44,6 +56,7 @@ int main(int argc, char *argv[]) {
     /* Parse command line arguments. */
     if(parseArgs(argc, argv))
         return EXIT_SUCCESS;
+    /* Call ftw to get '/proc' contents. */
     if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS) == -1)
         return EXIT_FAILURE;
     return EXIT_SUCCESS;
