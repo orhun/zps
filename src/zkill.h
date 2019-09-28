@@ -8,3 +8,4 @@
 #endif
 #define PROC_FS "/proc"         /* '/proc' filesystem */
 #define STATUS_FILE "/status"
+#define BLOCK_SIZE 4096

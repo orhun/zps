@@ -8,7 +8,23 @@
 #include <string.h>
 #include <ftw.h>
 
-static char *strPath; /* String part of a path in '/proc' */
+static char *strPath, 	 	 /* String part of a path in '/proc' */
+	fileContent[BLOCK_SIZE];
+
+static char* readFile(char *filename) {
+	int fd = open(filename, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
+	if (fd == -1) {
+		fprintf(stderr, "Failed to open file: '%s' \n", filename);
+	}
+	int i = 0;
+	char c;
+	while (read(fd, &c, sizeof(c)) != 0) {
+		fileContent[i] = c;
+		i++;
+	}
+	close(fd);
+	return fileContent;
+}
 
 /*!
  * Event for receiving tree entry from '/proc'.
@@ -33,7 +49,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			char pidStatusFile[sizeof(fpath)+sizeof(STATUS_FILE)];
 			strcpy(pidStatusFile, fpath);
 			strcat(pidStatusFile, STATUS_FILE);
-			fprintf(stderr, "%s\n", pidStatusFile);
+			fprintf(stderr, "%s", readFile(pidStatusFile));
 		}
     }
     return EXIT_SUCCESS;
