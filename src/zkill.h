@@ -7,3 +7,4 @@
 #define USE_FDS 15              /* Maximum number of file descriptors to use */
 #endif
 #define PROC_FS "/proc"         /* '/proc' filesystem */
+#define STATUS_FILE "/status"

@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <ftw.h>
 
@@ -25,7 +27,14 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
         !strcmp(strPath, "")) {
-        printf("[%s]\n", fpath + ftwbuf->base);
+
+        //fprintf(stderr, "[%s]\n", fpath + ftwbuf->base);
+		if (!strcmp(fpath + ftwbuf->base, "1")) {
+			char pidStatusFile[sizeof(fpath)+sizeof(STATUS_FILE)];
+			strcpy(pidStatusFile, fpath);
+			strcat(pidStatusFile, STATUS_FILE);
+			fprintf(stderr, "%s\n", pidStatusFile);
+		}
     }
     return EXIT_SUCCESS;
 }
