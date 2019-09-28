@@ -1,4 +1,5 @@
 // TODO: Add explanation of this file to here.
+// gcc -O3 -Wall zombie.c -o zombie.o
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
