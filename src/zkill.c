@@ -8,19 +8,17 @@
 #include <string.h>
 #include <ftw.h>
 
+static int fd;          	 /* File descriptor to be used in file operations */
 static char *strPath, 	 	 /* String part of a path in '/proc' */
-	fileContent[BLOCK_SIZE];
+	fileContent[BLOCK_SIZE]; /* Text content of a file */
 
 static char* readFile(char *filename) {
-	int fd = open(filename, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
-	if (fd == -1) {
-		fprintf(stderr, "Failed to open file: '%s' \n", filename);
-	}
-	int i = 0;
+	fd = open(filename, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
+	if (fd == -1)
+		return NULL;
 	char c;
-	while (read(fd, &c, sizeof(c)) != 0) {
+	for (int i = 0; read(fd, &c, sizeof(c)) != 0; i++) {
 		fileContent[i] = c;
-		i++;
 	}
 	close(fd);
 	return fileContent;
@@ -49,7 +47,11 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			char pidStatusFile[sizeof(fpath)+sizeof(STATUS_FILE)];
 			strcpy(pidStatusFile, fpath);
 			strcat(pidStatusFile, STATUS_FILE);
-			fprintf(stderr, "%s", readFile(pidStatusFile));
+			char *content = readFile(pidStatusFile);
+			if (content != NULL)
+				fprintf(stderr, "%s", content);
+			else
+				fprintf(stderr, "Failed to open file: '%s' \n", pidStatusFile);
 		}
     }
     return EXIT_SUCCESS;
