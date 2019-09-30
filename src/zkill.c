@@ -13,8 +13,14 @@ static char *strPath, 	 	 /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE], /* Text content of a file */
 	buff;                    /* Char variable that used as buffer in read */
 
-static char* readFile(char *filename) {
-	fd = open(filename, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
+/*!
+ * Read the given file and return its content.
+ *
+ * @param filename
+ * @return fileContent
+ */
+static char* readFile(char *fileName) {
+	fd = open(fileName, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
 	if (fd == -1)
 		return NULL;
 	for (int i = 0; read(fd, &buff, sizeof(buff)) != 0; i++) {
@@ -27,15 +33,16 @@ static char* readFile(char *filename) {
 /*!
  * Event for receiving tree entry from '/proc'.
  *
- * \param fpath  (pathname of the entry)
- * \param sb     (file status structure for fpath)
- * \param tflag  (type flag of the entry)
- * \param ftwbuf (structure that contains entry base and level)
- * \return EXIT_status
+ * @param fpath  (pathname of the entry)
+ * @param sb     (file status structure for fpath)
+ * @param tflag  (type flag of the entry)
+ * @param ftwbuf (structure that contains entry base and level)
+ * @return EXIT_status
  */
 static int procEntryRecv(const char *fpath, const struct stat *sb,
 		int tflag, struct FTW *ftwbuf) {
-	/* Check for depth of the fpath (1), type of the entry (directory),
+	/**
+	 * Check for depth of the fpath (1), type of the entry (directory),
 	 * base of the fpath (numeric value) to filter entries except PID.
 	 */
     if (ftwbuf->level == 1 && tflag == FTW_D &&
@@ -60,9 +67,9 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 /*!
  * Parse command line arguments.
  *
- * \param argc (argument count)
- * \param argv (argument vector)
- * \return EXIT_status
+ * @param argc (argument count)
+ * @param argv (argument vector)
+ * @return EXIT_status
  */
 static int parseArgs(int argc, char **argv){
     int opt;
