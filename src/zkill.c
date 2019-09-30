@@ -44,22 +44,27 @@ static char* readFile(char *fileName) {
 	return fileContent;
 }
 
-static int isDefunctProcess(const char *procPath) {
+/*!
+ * Check the given process' status.
+ *
+ * @param procPath (process path in '/proc')
+ * @return PROCESS_status
+ */
+static int checkProcStatus(const char *procPath) {
 	char pidStatusFile[sizeof(procPath)+sizeof(STATUS_FILE)];
 	strcpy(pidStatusFile, procPath);
 	strcat(pidStatusFile, STATUS_FILE);
 	char *content = readFile(pidStatusFile);
-	if (content != NULL)
-		fprintf(stderr, "%s", content);
-	else
-		fprintf(stderr, "Failed to open file: '%s' \n", pidStatusFile);
-	return EXIT_SUCCESS;
+	if (content == NULL)
+		return PROCESS_READ_ERROR;
+	fprintf(stderr, "%s", content);
+	return PROCESS_DRST;
 }
 
 /*!
  * Event for receiving tree entry from '/proc'.
  *
- * @param fpath  (pathname of the entry)
+ * @param fpath  (path name of the entry)
  * @param sb     (file status structure for fpath)
  * @param tflag  (type flag of the entry)
  * @param ftwbuf (structure that contains entry base and level)
@@ -74,8 +79,17 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
         !strcmp(strPath, "")) {
-		if (!strcmp(fpath + ftwbuf->base, "1") && isDefunctProcess(fpath)) {
-			//
+		if (strcmp(fpath + ftwbuf->base, "1"))
+			return EXIT_SUCCESS;
+
+		switch (checkProcStatus(fpath)) {
+			case PROCESS_DRST:
+				break;
+			case PROCESS_ZOMBIE:
+				break;
+			case PROCESS_READ_ERROR:
+				fprintf(stderr, "Failed to open file: '%s' \n", fpath);
+				break;
 		}
     }
     return EXIT_SUCCESS;
