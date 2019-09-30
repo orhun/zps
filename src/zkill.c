@@ -10,15 +10,15 @@
 
 static int fd;          	 /* File descriptor to be used in file operations */
 static char *strPath, 	 	 /* String part of a path in '/proc' */
-	fileContent[BLOCK_SIZE]; /* Text content of a file */
+	fileContent[BLOCK_SIZE], /* Text content of a file */
+	buff;                    /* Char variable that used as buffer in read */
 
 static char* readFile(char *filename) {
 	fd = open(filename, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
 	if (fd == -1)
 		return NULL;
-	char c;
-	for (int i = 0; read(fd, &c, sizeof(c)) != 0; i++) {
-		fileContent[i] = c;
+	for (int i = 0; read(fd, &buff, sizeof(buff)) != 0; i++) {
+		fileContent[i] = buff;
 	}
 	close(fd);
 	return fileContent;
