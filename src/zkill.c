@@ -20,12 +20,26 @@ static char *strPath, 	 	 /* String part of a path in '/proc' */
  * @return fileContent
  */
 static char* readFile(char *fileName) {
+	/**
+	 * Open file with following flags:
+	 * O_RDONLY: Open for reading only.
+	 * S_IRUSR: Read permission bit for the owner of the file.
+	 * S_IRGRP: Read permission bit for the group owner of the file.
+	 * S_IROTH: Read permission bit for other users.
+	 */
 	fd = open(fileName, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
+	/* Check for file open error. */
 	if (fd == -1)
 		return NULL;
+	/**
+	 * Read bytes from file descriptor into the buffer.
+	 * Use 'read until the end' method since it's not always possible to
+	 * read file knowing its size. ('/proc' has zero-length virtual files)
+	 */
 	for (int i = 0; read(fd, &buff, sizeof(buff)) != 0; i++) {
 		fileContent[i] = buff;
 	}
+	/* Close the file descriptor and return file content. */
 	close(fd);
 	return fileContent;
 }
