@@ -9,6 +9,6 @@
 #define PROC_FS "/proc"         /* '/proc' filesystem */
 #define STATUS_FILE "/status"   /* Filename for status of PID */
 #define BLOCK_SIZE 4096         /* Fixed block size for reading operations */
-#define PROCESS_DRST 0
-#define PROCESS_ZOMBIE 1
-#define PROCESS_READ_ERROR -1
+#define PROCESS_DRST 0          /* Return value of D/R/S/T process code */
+#define PROCESS_ZOMBIE 1        /* Return value of Z (zombie/defunct) process code */
+#define PROCESS_READ_ERROR -1   /* Return value of read error on '/proc' */
