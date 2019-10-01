@@ -62,7 +62,7 @@ static int checkProcStatus(const char *procPath) {
 	if (content == NULL)
 		return PROCESS_READ_ERROR;
 	/* Check file content for process status.*/
-	if (strstr(content, STATUS_ZOMBIE) != NULL)
+	if (strstr(content, STATE_ZOMBIE) != NULL)
 		return PROCESS_ZOMBIE;
 	return PROCESS_DRST;
 }
