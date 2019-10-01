@@ -1,4 +1,4 @@
-/*
+/**!
  * On Unix and Unix-like computer operating systems, a zombie process
  * or defunct process is a process that has completed execution but still
  * has an entry in the process table. (Wikipedia)
