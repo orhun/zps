@@ -29,14 +29,14 @@ static int fd;               /* File descriptor to be used in file operations */
 static char *strPath,        /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE], /* Text content of a file */
 	buff;                    /* Char variable that used as buffer in read */
-typedef struct {             /* Struct for storing parsed process' stats */
+typedef struct {             /* Struct for storing process stats */
 	int pid;
-    char *comm;
-    char *state;
-    int ppid;
+	char comm[BLOCK_SIZE/64];
+	char state[BLOCK_SIZE/64];
+	int ppid;
 } ProcStats;
 static ProcStats             /* Array of process stats struct */
-	procStats[BLOCK_SIZE*2];
+	procStats[BLOCK_SIZE*4];
 
 /*!
  * Read the given file and return its content.
@@ -90,8 +90,9 @@ static int checkProcStatus(const int pid, const char *procPath) {
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(content, "%d %s %s %d", &procStats[pid].pid,
 		procStats[pid].comm, procStats[pid].state, &procStats[pid].ppid);
-	//if (strstr(content, STATE_ZOMBIE) != NULL)
-		//return PROCESS_ZOMBIE;
+	/* Check for the process state for being zombie. */
+	if (strstr(procStats[pid].state, STATE_ZOMBIE) != NULL)
+		return PROCESS_ZOMBIE;
 	return PROCESS_DRST;
 }
 
@@ -118,10 +119,10 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 		switch (checkProcStatus(pid, fpath)) {
 			/* D (uninterruptible sleep), R (running), S (sleeping), T (stopped) */
 			case PROCESS_DRST:
-				fprintf(stderr, "Process: '%d'\r", pid);
+				fprintf(stderr, "Process: %d\r", pid);
 				break;
 			case PROCESS_ZOMBIE: 	 /* Defunct (zombie) process. */
-				fprintf(stderr, "Process (Z): '%s'\n", fpath + ftwbuf->base);
+				fprintf(stderr, "Process (Z): %d, PPID: %d\n", pid, procStats[pid].ppid);
 				break;
 			case PROCESS_READ_ERROR: /* Failed to read process' file. */
 				fprintf(stderr, "Failed to open file: '%s'\r", fpath);
