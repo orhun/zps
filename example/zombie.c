@@ -45,7 +45,7 @@ int main (int argc, char *argv[]) {
 		sleep(sleepSeconds);
 	/* Child process ID. */
   	} else if (childPID == 0) {
-    	fprintf(stderr,"PID: %d\n", getpid());
+		fprintf(stderr,"PID: %d\n", getpid());
   	}
 	return EXIT_SUCCESS;
 }
