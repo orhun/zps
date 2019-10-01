@@ -12,3 +12,4 @@
 #define PROCESS_DRST 0          /* Return value of D/R/S/T process code */
 #define PROCESS_ZOMBIE 1        /* Return value of Z (zombie/defunct) process code */
 #define PROCESS_READ_ERROR -1   /* Return value of read error on '/proc' */
+#define STATUS_ZOMBIE "State:\tZ (zombie)"
