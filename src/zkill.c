@@ -122,7 +122,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 				fprintf(stderr, "Process: %d\r", pid);
 				break;
 			case PROCESS_ZOMBIE: 	 /* Defunct (zombie) process. */
-				fprintf(stderr, "Process (Z): %d, PPID: %d\n", pid, procStats[pid].ppid);
+				fprintf(stderr, "Process (%s): %d, PPID: %d\n", procStats[pid].state,
+					pid, procStats[pid].ppid);
 				break;
 			case PROCESS_READ_ERROR: /* Failed to read process' file. */
 				fprintf(stderr, "Failed to open file: '%s'\r", fpath);
