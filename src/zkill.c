@@ -58,8 +58,10 @@ static int checkProcStatus(const char *procPath) {
 	strcat(pidStatusFile, STATUS_FILE);
 	/* Read the PID status file. */
 	char *content = readFile(pidStatusFile);
+	/* Check for the file read error. */
 	if (content == NULL)
 		return PROCESS_READ_ERROR;
+	// TODO: Check if the process is defunct.
 	fprintf(stderr, "%s", content);
 	return PROCESS_DRST;
 }
