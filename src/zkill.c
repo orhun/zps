@@ -69,7 +69,7 @@ static char* readFile(char *fileName) {
  */
 static int checkProcStatus(const char *procPath) {
 	/* Array for storing the stat file name of the process. */
-	char pidStatFile[sizeof(procPath)+sizeof(STAT_FILE)];
+	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)];
 	/* Fill the array with the given parameter and append '/stat'. */
 	strcpy(pidStatFile, procPath);
 	strcat(pidStatFile, STAT_FILE);
