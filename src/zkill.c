@@ -25,10 +25,18 @@
 #include <string.h>
 #include <ftw.h>
 
-static int fd;          	 /* File descriptor to be used in file operations */
-static char *strPath, 	 	 /* String part of a path in '/proc' */
+static int fd;               /* File descriptor to be used in file operations */
+static char *strPath,        /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE], /* Text content of a file */
 	buff;                    /* Char variable that used as buffer in read */
+typedef struct {             /* Struct for storing process stats */
+	int pid;
+	char comm[BLOCK_SIZE/64];
+	char state[BLOCK_SIZE/64];
+	int ppid;
+} ProcStats;
+static ProcStats             /* Array of process stats struct */
+	procStats[BLOCK_SIZE*4];
 
 /*!
  * Read the given file and return its content.
@@ -64,22 +72,26 @@ static char* readFile(char *fileName) {
 /*!
  * Check the given process' status.
  *
+ * @param pid      (process identifier)
  * @param procPath (process path in '/proc')
  * @return PROCESS_status
  */
-static int checkProcStatus(const char *procPath) {
-	/* Array for storing the status file name of the process. */
-	char pidStatusFile[sizeof(procPath)+sizeof(STATUS_FILE)];
-	/* Fill the array with the given parameter and append '/status'. */
-	strcpy(pidStatusFile, procPath);
-	strcat(pidStatusFile, STATUS_FILE);
+static int checkProcStatus(const int pid, const char *procPath) {
+	/* Array for storing the stat file name of the process. */
+	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)];
+	/* Fill the array with the given parameter and append '/stat'. */
+	strcpy(pidStatFile, procPath);
+	strcat(pidStatFile, STAT_FILE);
 	/* Read the PID status file. */
-	char *content = readFile(pidStatusFile);
+	char *content = readFile(pidStatFile);
 	/* Check for the file read error. */
 	if (content == NULL)
 		return PROCESS_READ_ERROR;
-	/* Check file content for process status.*/
-	if (strstr(content, STATE_ZOMBIE) != NULL)
+	/* Parse the '/stat' file into process status struct. */
+	sscanf(content, "%d %s %s %d", &procStats[pid].pid,
+		procStats[pid].comm, procStats[pid].state, &procStats[pid].ppid);
+	/* Check for the process state for being zombie. */
+	if (strstr(procStats[pid].state, STATE_ZOMBIE) != NULL)
 		return PROCESS_ZOMBIE;
 	return PROCESS_DRST;
 }
@@ -102,20 +114,19 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
         !strcmp(strPath, "")) {
+		const int pid = atoi(fpath + ftwbuf->base);
 		/* Check the process status. */
-		switch (checkProcStatus(fpath)) {
+		switch (checkProcStatus(pid, fpath)) {
 			/* D (uninterruptible sleep), R (running), S (sleeping), T (stopped) */
 			case PROCESS_DRST:
-				fprintf(stderr, "Process: '%s'\r", fpath + ftwbuf->base);
+				fprintf(stderr, "Process: %d\r", pid);
 				break;
 			case PROCESS_ZOMBIE: 	 /* Defunct (zombie) process. */
-				fprintf(stderr, "Process (Z): '%s'\n", fpath + ftwbuf->base);
+				fprintf(stderr, "Process (%s): %d, PPID: %d\n", procStats[pid].state,
+					pid, procStats[pid].ppid);
 				break;
 			case PROCESS_READ_ERROR: /* Failed to read process' file. */
 				fprintf(stderr, "Failed to open file: '%s'\r", fpath);
-				break;
-			default:
-				fprintf(stderr, "\n");
 				break;
 		}
     }
