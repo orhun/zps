@@ -23,22 +23,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-static pid_t childPID; /* PID of the child process */
+static pid_t childPID;        /* PID of the child process */
+static int sleepSeconds = 60; /* Sleep time of the parent process */
 
 /*!
  * Entry-point
  */
-int main () {
+int main (int argc, char *argv[]) {
+	/* Parse command line arguments. */
+	if (argc > 1)
+		 sleepSeconds = atoi(argv[1]);
 	/* Call fork to create a child process. */
 	childPID = fork();
 	/* Parent process ID. */
 	if (childPID > 0) {
 		/**
-		* Sleep for 60s and eventually exit without the wait call.
+		* Sleep and eventually exit without the wait call.
 		* This will cause child process to be a defunct process.
 		*/
-    	fprintf(stderr, "PPID: %d\n", getpid());
-    	sleep(60);
+		fprintf(stderr, "PPID: %d\n", getpid());
+		sleep(sleepSeconds);
 	/* Child process ID. */
   	} else if (childPID == 0) {
     	fprintf(stderr,"PID: %d\n", getpid());
