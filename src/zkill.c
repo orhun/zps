@@ -61,10 +61,9 @@ static int checkProcStatus(const char *procPath) {
 	/* Check for the file read error. */
 	if (content == NULL)
 		return PROCESS_READ_ERROR;
-
+	/* Check file content for process status.*/
 	if (strstr(content, STATUS_ZOMBIE) != NULL)
 		return PROCESS_ZOMBIE;
-	// fprintf(stderr, "%s", content);
 	return PROCESS_DRST;
 }
 
@@ -86,15 +85,20 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
         !strcmp(strPath, "")) {
-
+		/* Check the process status. */
 		switch (checkProcStatus(fpath)) {
+			/* D (uninterruptible sleep), R (running), S (sleeping), T (stopped) */
 			case PROCESS_DRST:
+				fprintf(stderr, "Process: '%s'\r", fpath + ftwbuf->base);
 				break;
-			case PROCESS_ZOMBIE:
-				fprintf(stderr, "Zombie process: '%s'\n", fpath + ftwbuf->base);
+			case PROCESS_ZOMBIE: 	 /* Defunct (zombie) process. */
+				fprintf(stderr, "Process (Z): '%s'\n", fpath + ftwbuf->base);
 				break;
-			case PROCESS_READ_ERROR:
-				fprintf(stderr, "Failed to open file: '%s'\n", fpath);
+			case PROCESS_READ_ERROR: /* Failed to read process' file. */
+				fprintf(stderr, "Failed to open file: '%s'\r", fpath);
+				break;
+			default:
+				fprintf(stderr, "\n");
 				break;
 		}
     }
