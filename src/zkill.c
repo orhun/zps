@@ -68,13 +68,13 @@ static char* readFile(char *fileName) {
  * @return PROCESS_status
  */
 static int checkProcStatus(const char *procPath) {
-	/* Array for storing the status file name of the process. */
-	char pidStatusFile[sizeof(procPath)+sizeof(STATUS_FILE)];
-	/* Fill the array with the given parameter and append '/status'. */
-	strcpy(pidStatusFile, procPath);
-	strcat(pidStatusFile, STATUS_FILE);
+	/* Array for storing the stat file name of the process. */
+	char pidStatFile[sizeof(procPath)+sizeof(STAT_FILE)];
+	/* Fill the array with the given parameter and append '/stat'. */
+	strcpy(pidStatFile, procPath);
+	strcat(pidStatFile, STAT_FILE);
 	/* Read the PID status file. */
-	char *content = readFile(pidStatusFile);
+	char *content = readFile(pidStatFile);
 	/* Check for the file read error. */
 	if (content == NULL)
 		return PROCESS_READ_ERROR;
