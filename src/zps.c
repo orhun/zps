@@ -152,7 +152,7 @@ static int checkProcesses() {
 	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS)) {
 		return EXIT_FAILURE;
 	}
-	fprintf(stderr, "%c[2KDefunct (zombie) "+
+	fprintf(stderr, "%c[2KDefunct (zombie) "
 		"processes found: %d\n", 27, defunctCount);
 	return EXIT_SUCCESS;
 }
