@@ -146,7 +146,7 @@ static int checkProcesses() {
 	 * USE_FDS: Maximum number of file descriptors to use.
 	 * FTW_PHYS: Flag for not to follow symbolic links.
 	 */
-	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS) == -1) {
+	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS)) {
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
