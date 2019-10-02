@@ -139,9 +139,16 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
  * @return EXIT_status
  */
 static int checkProcesses() {
-	/* Call ftw to get '/proc' contents. */
-	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS) == -1)
+	/**
+	 * Call ftw with the following parameters to get '/proc' contents:
+	 * PROC_FS: '/proc' filesystem.
+	 * procEntryRecv: Function to call for each entry found in the tree.
+	 * USE_FDS: Maximum number of file descriptors to use.
+	 * FTW_PHYS: Flag for not to follow symbolic links.
+	 */
+	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS) == -1) {
 		return EXIT_FAILURE;
+	}
 	return EXIT_SUCCESS;
 }
 
