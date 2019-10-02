@@ -88,7 +88,7 @@ static int checkProcStatus(const int pid, const char *procPath) {
 	if (content == NULL)
 		return PROCESS_READ_ERROR;
 	/* Parse the '/stat' file into process status struct. */
-	sscanf(content, "%d %s %s %d", &procStats[pid].pid,
+	sscanf(content, "%d %64s %64s %d", &procStats[pid].pid,
 		procStats[pid].comm, procStats[pid].state, &procStats[pid].ppid);
 	/* Check for the process state for being zombie. */
 	if (strstr(procStats[pid].state, STATE_ZOMBIE) != NULL)
