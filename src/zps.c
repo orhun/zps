@@ -134,6 +134,18 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 }
 
 /*!
+ * Check running process' states using the '/proc' filesystem.
+ *
+ * @return EXIT_status
+ */
+static int checkProcesses() {
+	/* Call ftw to get '/proc' contents. */
+	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS) == -1)
+		return EXIT_FAILURE;
+	return EXIT_SUCCESS;
+}
+
+/*!
  * Parse command line arguments.
  *
  * @param argc (argument count)
@@ -156,11 +168,9 @@ static int parseArgs(int argc, char **argv){
  * Entry-point
  */
 int main(int argc, char *argv[]) {
-    /* Parse command line arguments. */
-    if(parseArgs(argc, argv))
-        return EXIT_SUCCESS;
-    /* Call ftw to get '/proc' contents. */
-    if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS) == -1)
-        return EXIT_FAILURE;
-    return EXIT_SUCCESS;
+	/* Parse command line arguments. */
+	if(parseArgs(argc, argv))
+		return EXIT_SUCCESS;
+	/* Check running processes. */
+	return checkProcesses();
 }
