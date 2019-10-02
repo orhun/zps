@@ -1,4 +1,3 @@
-
 #define VERSION "1.0"         /* Version */
 #define _XOPEN_SOURCE 700     /* POSIX.1-2008 + XSI (SuSv4) */
 #define _LARGEFILE64_SOURCE   /* Enable LFS */

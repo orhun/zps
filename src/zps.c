@@ -1,5 +1,5 @@
 /**!
- * zkill, <TODO: Add description>
+ * zps, <TODO: Add description>
  * Copyright (C) 2019 by orhun <https://www.github.com/orhun>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -9,14 +9,14 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "zkill.h"
+#include "zps.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -145,7 +145,7 @@ static int parseArgs(int argc, char **argv){
     while ((opt = getopt(argc, argv, "v")) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
-                fprintf(stderr, "zkill v%s\n", VERSION);
+                fprintf(stderr, "zps v%s\n", VERSION);
                 return EXIT_FAILURE;
         }
     }
