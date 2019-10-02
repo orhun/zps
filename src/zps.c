@@ -25,11 +25,12 @@
 #include <string.h>
 #include <ftw.h>
 
-static int fd;               /* File descriptor to be used in file operations */
-static char *strPath,        /* String part of a path in '/proc' */
+static int fd,		         /* File descriptor to be used in file operations */
+	defunctCount = 0;        /* Number of found defunct processes */
+static char *strPath,		 /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE], /* Text content of a file */
 	buff;                    /* Char variable that used as buffer in read */
-typedef struct {             /* Struct for storing process stats */
+typedef struct {	         /* Struct for storing process stats */
 	int pid;
 	char comm[BLOCK_SIZE/64];
 	char state[BLOCK_SIZE/64];
@@ -122,6 +123,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 				fprintf(stderr, "Process: %d\r", pid);
 				break;
 			case PROCESS_ZOMBIE: 	 /* Defunct (zombie) process. */
+				/* Increment the defunct process count. */
+				defunctCount++;
 				fprintf(stderr, "Process (%s): %d, PPID: %d\n", procStats[pid].state,
 					pid, procStats[pid].ppid);
 				break;
@@ -149,6 +152,8 @@ static int checkProcesses() {
 	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS)) {
 		return EXIT_FAILURE;
 	}
+	fprintf(stderr, "%c[2KDefunct (zombie) "+
+		"processes found: %d\n", 27, defunctCount);
 	return EXIT_SUCCESS;
 }
 
