@@ -153,6 +153,10 @@ static int checkProcesses() {
 	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS)) {
 		return EXIT_FAILURE;
 	}
+	/**
+	 * Handle the defunct processes after the ftw completes.
+	 * Terminating a process while ftw might cause interruption.
+	 */
 	fprintf(stderr, "%c[2KDefunct (zombie) "
 		"processes found: %d\n", 27, defunctCount);
 	for(int i = 0; i < defunctCount; i++) {
