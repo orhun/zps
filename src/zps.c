@@ -26,19 +26,20 @@
 #include <signal.h>
 #include <ftw.h>
 
-static int fd,		         /* File descriptor to be used in file operations */
-	defunctCount = 0;        /* Number of found defunct processes */
-static char *strPath,		 /* String part of a path in '/proc' */
-	fileContent[BLOCK_SIZE], /* Text content of a file */
-	buff;                    /* Char variable that used as buffer in read */
-typedef struct {	         /* Struct for storing process stats */
+static int fd,		            /* File descriptor to be used in file operations */
+	defunctCount = 0;           /* Number of found defunct processes */
+static char *strPath,		    /* String part of a path in '/proc' */
+	fileContent[BLOCK_SIZE],    /* Text content of a file */
+	buff;                       /* Char variable that used as buffer in read */
+typedef struct {	            /* Struct for storing process stats */
 	int pid;
 	char comm[BLOCK_SIZE/64];
 	char state[BLOCK_SIZE/64];
 	int ppid;
 } ProcStats;
-static ProcStats             /* Array of process stats struct */
-	procStats[BLOCK_SIZE*4];
+static ProcStats	            /* Array of all parsed process' stats */
+	procStats[BLOCK_SIZE*4],
+	defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
 
 /*!
  * Read the given file and return its content.
@@ -124,15 +125,9 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 				fprintf(stderr, "Process: %d\r", pid);
 				break;
 			case PROCESS_ZOMBIE: 	 /* Defunct (zombie) process. */
-				/* Increment the defunct process count. */
-				defunctCount++;
-				fprintf(stderr, "Process (%s): %d, PPID: %d ", procStats[pid].state,
-					pid, procStats[pid].ppid);
-				/* Send termination signal to the parent of defunct process. */
-				if(!kill(procStats[pid].ppid, SIGTERM))
-					fprintf(stderr, "(terminated)\n");
-				else
-					fprintf(stderr, "(failed to terminate)\n");
+				fprintf(stderr, "Process: %d (%s)\r", pid, procStats[pid].state);
+				/* Add process stats to the array of defunct process stats. */
+				defunctProcs[defunctCount++] = procStats[pid];
 				break;
 			case PROCESS_READ_ERROR: /* Failed to read process' file. */
 				fprintf(stderr, "Failed to open file: '%s'\r", fpath);
@@ -160,6 +155,10 @@ static int checkProcesses() {
 	}
 	fprintf(stderr, "%c[2KDefunct (zombie) "
 		"processes found: %d\n", 27, defunctCount);
+	for(int i = 0; i < defunctCount; i++) {
+		fprintf(stderr, "Process (%s): %d, PPID: %d\n", defunctProcs[i].state,
+					defunctProcs[i].pid, defunctProcs[i].ppid);
+	}
 	return EXIT_SUCCESS;
 }
 
