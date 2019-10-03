@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <signal.h>
 #include <ftw.h>
 
 static int fd,		         /* File descriptor to be used in file operations */
