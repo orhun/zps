@@ -156,8 +156,13 @@ static int checkProcesses() {
 	fprintf(stderr, "%c[2KDefunct (zombie) "
 		"processes found: %d\n", 27, defunctCount);
 	for(int i = 0; i < defunctCount; i++) {
-		fprintf(stderr, "Process (%s): %d, PPID: %d\n", defunctProcs[i].state,
+		fprintf(stderr, "Process (%s): %d, PPID: %d ", defunctProcs[i].state,
 					defunctProcs[i].pid, defunctProcs[i].ppid);
+		/* Send termination signal to the parent of defunct process. */
+		if(!kill(defunctProcs[i].ppid, SIGTERM))
+			fprintf(stderr, "(terminated)\n");
+		else
+			fprintf(stderr, "(failed to terminate)\n");
 	}
 	return EXIT_SUCCESS;
 }
