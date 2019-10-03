@@ -128,6 +128,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 				defunctCount++;
 				fprintf(stderr, "Process (%s): %d, PPID: %d ", procStats[pid].state,
 					pid, procStats[pid].ppid);
+				/* Send termination signal to the parent of defunct process. */
 				if(!kill(procStats[pid].ppid, SIGTERM))
 					fprintf(stderr, "(terminated)\n");
 				else
