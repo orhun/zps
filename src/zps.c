@@ -37,8 +37,7 @@ typedef struct {	            /* Struct for storing process stats */
 	char state[BLOCK_SIZE/64];
 	int ppid;
 } ProcStats;
-static ProcStats	            /* Array of all parsed process' stats */
-	procStats[BLOCK_SIZE*4],
+static ProcStats
 	defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
 
 /*!
@@ -51,9 +50,9 @@ static char* readFile(char *fileName) {
 	/**
 	 * Open file with following flags:
 	 * O_RDONLY: Open for reading only.
-	 * S_IRUSR: Read permission bit for the owner of the file.
-	 * S_IRGRP: Read permission bit for the group owner of the file.
-	 * S_IROTH: Read permission bit for other users.
+	 * S_IRUSR:  Read permission bit for the owner of the file.
+	 * S_IRGRP:  Read permission bit for the group owner of the file.
+	 * S_IROTH:  Read permission bit for other users.
 	 */
 	fd = open(fileName, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
 	/* Check for file open error. */
@@ -73,13 +72,12 @@ static char* readFile(char *fileName) {
 }
 
 /*!
- * Check the given process' status.
+ * Parse and return the stats from process path.
  *
- * @param pid      (process identifier)
- * @param procPath (process path in '/proc')
- * @return PROCESS_status
+ * @param procPath   (process path in '/proc')
+ * @return procStats (process stats)
  */
-static int checkProcStatus(const int pid, const char *procPath) {
+static ProcStats getProcStats(const char *procPath) {
 	/* Array for storing the stat file name of the process. */
 	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)];
 	/* Fill the array with the given parameter and append '/stat'. */
@@ -87,16 +85,13 @@ static int checkProcStatus(const int pid, const char *procPath) {
 	strcat(pidStatFile, STAT_FILE);
 	/* Read the PID status file. */
 	char *content = readFile(pidStatFile);
-	/* Check for the file read error. */
-	if (content == NULL)
-		return PROCESS_READ_ERROR;
+	/* Create a structure for storing parsed process' stats. */
+	ProcStats procStats;
 	/* Parse the '/stat' file into process status struct. */
-	sscanf(content, "%d %64s %64s %d", &procStats[pid].pid,
-		procStats[pid].comm, procStats[pid].state, &procStats[pid].ppid);
-	/* Check for the process state for being zombie. */
-	if (strstr(procStats[pid].state, STATE_ZOMBIE) != NULL)
-		return PROCESS_ZOMBIE;
-	return PROCESS_DRST;
+	sscanf(content, "%d %64s %64s %d", &procStats.pid,
+		procStats.comm, procStats.state, &procStats.ppid);
+	/* Return the process stats. */
+	return procStats;
 }
 
 /*!
@@ -117,21 +112,18 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
         !strcmp(strPath, "")) {
-		const int pid = atoi(fpath + ftwbuf->base);
-		/* Check the process status. */
-		switch (checkProcStatus(pid, fpath)) {
-			/* D (uninterruptible sleep), R (running), S (sleeping), T (stopped) */
-			case PROCESS_DRST:
-				fprintf(stderr, "Process: %d\r", pid);
-				break;
-			case PROCESS_ZOMBIE: 	 /* Defunct (zombie) process. */
-				fprintf(stderr, "Process: %d (%s)\r", pid, procStats[pid].state);
-				/* Add process stats to the array of defunct process stats. */
-				defunctProcs[defunctCount++] = procStats[pid];
-				break;
-			case PROCESS_READ_ERROR: /* Failed to read process' file. */
-				fprintf(stderr, "Failed to open file: '%s'\r", fpath);
-				break;
+		/* Get the process stats from the path. */
+		ProcStats procStats = getProcStats(fpath);
+		/* Check for process' file parse error. */
+		if (strlen(procStats.state) == 0) {
+			fprintf(stderr, "Failed to parse file: '%s'\n", fpath);
+			exit(0);
+		/* Check for the process state for being zombie. */
+		} else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
+			/* Add process stats to the array of defunct process stats. */
+			defunctProcs[defunctCount++] = procStats;
+		} else {
+			fprintf(stderr, "Process: %d\r", procStats.pid);
 		}
     }
     return EXIT_SUCCESS;
@@ -145,10 +137,10 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 static int checkProcesses() {
 	/**
 	 * Call ftw with the following parameters to get '/proc' contents:
-	 * PROC_FS: '/proc' filesystem.
+	 * PROC_FS:       '/proc' filesystem.
 	 * procEntryRecv: Function to call for each entry found in the tree.
-	 * USE_FDS: Maximum number of file descriptors to use.
-	 * FTW_PHYS: Flag for not to follow symbolic links.
+	 * USE_FDS:       Maximum number of file descriptors to use.
+	 * FTW_PHYS:      Flag for not to follow symbolic links.
 	 */
 	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS)) {
 		return EXIT_FAILURE;
