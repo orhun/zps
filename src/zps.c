@@ -79,24 +79,27 @@ static char* readFile(char *fileName) {
  * @return procStats (process stats)
  */
 static ProcStats getProcStats(const char *procPath) {
-	/* Array for storing the information of the process. */
+	/* Create a structure for storing parsed process' stats. */
+	ProcStats procStats = {.state=DEFAULT_STATE};
+	/* Array for storing information about the process. */
 	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)],
 		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)];
 	/* Concatenate the process path and the 'stat' file. */
 	snprintf(pidStatFile, sizeof(pidStatFile)+1, "%s%s", procPath, STAT_FILE);
 	/* Read the PID status file. */
-	char *content = readFile(pidStatFile);
-	/* Create a structure for storing parsed process' stats. */
-	ProcStats procStats;
+	char *statContent = readFile(pidStatFile);
+	/* Check for file read error. */
+	if (statContent == NULL)
+		goto RETURN;
 	/* Parse the '/stat' file into process status struct. */
-	sscanf(content, "%d %64s %64s %d", &procStats.pid,
+	sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
 		procStats.comm, procStats.state, &procStats.ppid);
 	/* Concatenate the process path and the 'cmdline' file. */
 	snprintf(pidCmdFile, sizeof(pidCmdFile)+1, "%s%s", procPath, CMD_FILE);
 	/* Update the command variable in the process status struct. */
 	strncpy(procStats.cmd, readFile(pidCmdFile), sizeof(procStats.cmd));
 	/* Return the process stats. */
-	return procStats;
+	RETURN: return procStats;
 }
 
 /*!
@@ -120,7 +123,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 		/* Get the process stats from the path. */
 		ProcStats procStats = getProcStats(fpath);
 		/* Check for process' file parse error. */
-		if (strlen(procStats.state) == 0) {
+		if (!strncmp(procStats.state, DEFAULT_STATE,
+			strlen(procStats.state))) {
 			fprintf(stderr, "Failed to parse file: '%s'\n", fpath);
 			exit(0);
 		/* Check for the process state for being zombie. */

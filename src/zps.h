@@ -28,3 +28,4 @@
 #define CMD_FILE "/cmdline"  /* File name of PID command */
 #define BLOCK_SIZE 4096      /* Fixed block size*/
 #define STATE_ZOMBIE "Z"     /* Status file entry of zombie state */
+#define DEFAULT_STATE "~"    /* Default state of the process before parsing */
