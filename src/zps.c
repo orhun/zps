@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <ftw.h>
 
 static int fd,		            /* File descriptor to be used in file operations */
@@ -40,14 +41,20 @@ typedef struct {	            /* Struct for storing process stats */
 } ProcStats;
 static ProcStats
 	defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
+static va_list vargs;
 
 /*!
  * Read the given file and return its content.
  *
- * @param filename
+ * @param  filename
+ * @param  format
  * @return fileContent
  */
-static char* readFile(char *fileName) {
+static char* readFile(char *fileName, char *format, ...) {
+	/* Format the given file name with the arguments. */
+	va_start(vargs, format);
+	vsnprintf(fileName, sizeof(vargs)+1, format, vargs);
+	va_end(vargs);
 	/**
 	 * Open file with following flags:
 	 * O_RDONLY: Open for reading only.
@@ -84,20 +91,20 @@ static ProcStats getProcStats(const char *procPath) {
 	/* Array for storing information about the process. */
 	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)],
 		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)];
-	/* Concatenate the process path and the 'stat' file. */
-	snprintf(pidStatFile, sizeof(pidStatFile)+1, "%s%s", procPath, STAT_FILE);
-	/* Read the PID status file. */
-	char *statContent = readFile(pidStatFile);
-	/* Check for file read error. */
+	char *statContent, *cmdContent;
+	/* Read the 'status' file and check error. */
+	statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
 	if (statContent == NULL)
 		goto RETURN;
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
 		procStats.comm, procStats.state, &procStats.ppid);
-	/* Concatenate the process path and the 'cmdline' file. */
-	snprintf(pidCmdFile, sizeof(pidCmdFile)+1, "%s%s", procPath, CMD_FILE);
+	/* Read the 'cmdline' file and check error. */
+	cmdContent = readFile(pidCmdFile, "%s%s", procPath, CMD_FILE);
+	if (cmdContent == NULL)
+		goto RETURN;
 	/* Update the command variable in the process status struct. */
-	strncpy(procStats.cmd, readFile(pidCmdFile), sizeof(procStats.cmd));
+	strcpy(procStats.cmd, cmdContent);
 	/* Return the process stats. */
 	RETURN: return procStats;
 }
