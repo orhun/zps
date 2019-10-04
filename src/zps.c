@@ -36,6 +36,7 @@ typedef struct {	            /* Struct for storing process stats */
 	char comm[BLOCK_SIZE/64];
 	char state[BLOCK_SIZE/64];
 	int ppid;
+	char cmd[BLOCK_SIZE];
 } ProcStats;
 static ProcStats
 	defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
@@ -78,11 +79,11 @@ static char* readFile(char *fileName) {
  * @return procStats (process stats)
  */
 static ProcStats getProcStats(const char *procPath) {
-	/* Array for storing the stat file name of the process. */
-	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)];
-	/* Fill the array with the given parameter and append '/stat'. */
-	strcpy(pidStatFile, procPath);
-	strcat(pidStatFile, STAT_FILE);
+	/* Array for storing the information of the process. */
+	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)],
+		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)];
+	/* Concatenate the process path and the 'stat' file. */
+	snprintf(pidStatFile, sizeof(pidStatFile)+1, "%s%s", procPath, STAT_FILE);
 	/* Read the PID status file. */
 	char *content = readFile(pidStatFile);
 	/* Create a structure for storing parsed process' stats. */
@@ -90,6 +91,10 @@ static ProcStats getProcStats(const char *procPath) {
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(content, "%d %64s %64s %d", &procStats.pid,
 		procStats.comm, procStats.state, &procStats.ppid);
+	/* Concatenate the process path and the 'cmdline' file. */
+	snprintf(pidCmdFile, sizeof(pidCmdFile)+1, "%s%s", procPath, CMD_FILE);
+	/* Update the command variable in the process status struct. */
+	strncpy(procStats.cmd, readFile(pidCmdFile), sizeof(procStats.cmd));
 	/* Return the process stats. */
 	return procStats;
 }
@@ -114,6 +119,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         !strcmp(strPath, "")) {
 		/* Get the process stats from the path. */
 		ProcStats procStats = getProcStats(fpath);
+		fprintf(stderr, "[%s]\n", procStats.cmd);
 		/* Check for process' file parse error. */
 		if (strlen(procStats.state) == 0) {
 			fprintf(stderr, "Failed to parse file: '%s'\n", fpath);
@@ -123,7 +129,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
 		} else {
-			fprintf(stderr, "Process: %d\r", procStats.pid);
+			//fprintf(stderr, "Process: %d\r", procStats.pid);
 		}
     }
     return EXIT_SUCCESS;
