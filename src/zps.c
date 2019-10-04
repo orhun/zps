@@ -116,10 +116,9 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 	 */
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
-        !strcmp(strPath, "")) {
+        !strncmp(strPath, "", strlen(strPath))) {
 		/* Get the process stats from the path. */
 		ProcStats procStats = getProcStats(fpath);
-		fprintf(stderr, "[%s]\n", procStats.cmd);
 		/* Check for process' file parse error. */
 		if (strlen(procStats.state) == 0) {
 			fprintf(stderr, "Failed to parse file: '%s'\n", fpath);
@@ -129,7 +128,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
 		} else {
-			//fprintf(stderr, "Process: %d\r", procStats.pid);
+			fprintf(stderr, "Process: %d\r", procStats.pid);
 		}
     }
     return EXIT_SUCCESS;
