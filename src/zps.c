@@ -31,7 +31,8 @@ static int fd,		            /* File descriptor to be used in file operations */
 	defunctCount = 0;           /* Number of found defunct processes */
 static char *strPath,		    /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE],    /* Text content of a file */
-	buff;                       /* Char variable that used as buffer in read */
+	buff,                       /* Char variable that used as buffer in read */
+	*statContent, *cmdContent;  /* Text content of the process' information file */
 typedef struct {	            /* Struct for storing process stats */
 	int pid;
 	char comm[BLOCK_SIZE/64];
@@ -41,7 +42,7 @@ typedef struct {	            /* Struct for storing process stats */
 } ProcStats;
 static ProcStats
 	defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
-static va_list vargs;
+static va_list vargs;		    /* List of information about variable arguments */
 
 /*!
  * Read the given file and return its content.
@@ -91,7 +92,6 @@ static ProcStats getProcStats(const char *procPath) {
 	/* Array for storing information about the process. */
 	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)],
 		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)];
-	char *statContent, *cmdContent;
 	/* Read the 'status' file and check error. */
 	statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
 	if (statContent == NULL)
