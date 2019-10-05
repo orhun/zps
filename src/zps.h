@@ -16,16 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define VERSION "1.0"        /* Version */
-#define _XOPEN_SOURCE 700    /* POSIX.1-2008 + XSI (SuSv4) */
-#define _LARGEFILE64_SOURCE  /* Enable LFS */
-#define _FILE_OFFSET_BITS 64 /* Support 64-bit file sizes */
+#define VERSION "1.0"              /* Version */
+#define _XOPEN_SOURCE 700          /* POSIX.1-2008 + XSI (SuSv4) */
+#define _LARGEFILE64_SOURCE        /* Enable LFS */
+#define _FILE_OFFSET_BITS 64       /* Support 64-bit file sizes */
 #ifndef USE_FDS
-#define USE_FDS 15           /* Maximum number of file descriptors to use */
+#define USE_FDS 15                 /* Maximum number of file descriptors to use */
 #endif
-#define PROC_FS "/proc"      /* '/proc' filesystem */
-#define STAT_FILE "/stat"    /* File name of PID status */
-#define CMD_FILE "/cmdline"  /* File name of PID command */
-#define BLOCK_SIZE 4096      /* Fixed block size*/
-#define STATE_ZOMBIE "Z"     /* Status file entry of zombie state */
-#define DEFAULT_STATE "~"    /* Default state of the process before parsing */
+#define PROC_FS "/proc"            /* '/proc' filesystem */
+#define STAT_FILE "/stat"          /* File name of PID status */
+#define CMD_FILE "/cmdline"        /* File name of PID command */
+#define BLOCK_SIZE 4096            /* Fixed block size*/
+#define STATE_ZOMBIE "Z"           /* Status file entry of zombie state */
+#define DEFAULT_STATE "~"          /* Default state of the process before parsing */
+#define NAME_REGEX "\\(([^)]*)\\)"
+#define REG_MAX_MATCH 8
+#define SPACE_REPLACEMENT '_'

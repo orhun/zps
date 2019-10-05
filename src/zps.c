@@ -25,6 +25,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <regex.h>
 #include <ftw.h>
 
 static int fd,		            /* File descriptor to be used in file operations */
@@ -32,7 +33,8 @@ static int fd,		            /* File descriptor to be used in file operations */
 static char *strPath,		    /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE],    /* Text content of a file */
 	buff,                       /* Char variable that used as buffer in read */
-	*statContent, *cmdContent;  /* Text content of the process' information file */
+	*statContent, *cmdContent,  /* Text content of the process' information file */
+	match[BLOCK_SIZE/4];
 typedef struct {	            /* Struct for storing process stats */
 	int pid;
 	char comm[BLOCK_SIZE/64];
@@ -43,6 +45,9 @@ typedef struct {	            /* Struct for storing process stats */
 static ProcStats
 	defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
 static va_list vargs;		    /* List of information about variable arguments */
+static regex_t regex;
+static regmatch_t
+	regMatch[REG_MAX_MATCH];
 
 /*!
  * Read the given file and return its content.
@@ -96,6 +101,29 @@ static ProcStats getProcStats(const char *procPath) {
 	statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
 	if (statContent == NULL)
 		goto RETURN;
+
+	if (regcomp(&regex, NAME_REGEX, REG_EXTENDED) != 0)
+		goto RETURN;
+	if ((regexec(&regex, statContent, REG_MAX_MATCH, regMatch, REG_NOTEOL))
+		!= REG_NOMATCH) {
+        char *offsetBegin = statContent + regMatch[1].rm_so,
+			*offsetEnd = statContent + regMatch[1].rm_eo,
+			*contentDup = strdup(statContent);
+        int offsetSpace = regMatch[1].rm_so - 1,
+            matchLength = 0;
+        while(offsetBegin < offsetEnd) {
+            if (offsetBegin != offsetEnd && matchLength != 0)
+                contentDup[offsetSpace] = SPACE_REPLACEMENT;
+            matchLength = (int) strcspn(offsetBegin, " ");
+            sprintf(match, "%.*s", matchLength, offsetBegin);
+            offsetSpace += strlen(match) + 1;
+            offsetBegin += matchLength;
+            offsetBegin += strspn(offsetBegin, " ");
+        }
+        strcpy(fileContent, contentDup);
+        free(contentDup);
+    }
+
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
 		procStats.comm, procStats.state, &procStats.ppid);
@@ -129,6 +157,9 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         !strncmp(strPath, "", strlen(strPath))) {
 		/* Get the process stats from the path. */
 		ProcStats procStats = getProcStats(fpath);
+
+		fprintf(stderr, "%d %s %s %d\n", procStats.pid, procStats.state,
+			procStats.comm, procStats.ppid);
 		/* Check for process' file parse error. */
 		if (!strncmp(procStats.state, DEFAULT_STATE,
 			strlen(procStats.state))) {
@@ -139,7 +170,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
 		} else {
-			fprintf(stderr, "Process: %d\r", procStats.pid);
+			//fprintf(stderr, "Process: %d\r", procStats.pid);
 		}
     }
     return EXIT_SUCCESS;
