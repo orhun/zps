@@ -30,5 +30,5 @@
 #define STATE_ZOMBIE "Z"           /* Status file entry of zombie state */
 #define DEFAULT_STATE "~"          /* Default state of the process before parsing */
 #define STAT_REGEX "\\(([^)]*)\\)" /* Regex for matching the values in 'stat' file */
-#define REG_MAX_MATCH 8            /* Maximum number of regex matches. */
+#define REG_MAX_MATCH 8            /* Maximum number of regex matches */
 #define SPACE_REPLACEMENT '_'      /* Character for replacing the spaces in regex match */

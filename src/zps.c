@@ -32,14 +32,14 @@ static int fd,		            /* File descriptor to be used in file operations */
 	defunctCount = 0;           /* Number of found defunct processes */
 static char *strPath,		    /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE],    /* Text content of a file */
+    match[BLOCK_SIZE/4],        /* Regex match */
 	buff,                       /* Char variable that used as buffer in read */
-	*statContent, *cmdContent,  /* Text content of the process' information file */
-	match[BLOCK_SIZE/4];        /* Regex match */
+	*statContent, *cmdContent;  /* Text content of the process' information file */
 typedef struct {	            /* Struct for storing process stats */
 	int pid;
+	int ppid;
 	char comm[BLOCK_SIZE/64];
 	char state[BLOCK_SIZE/64];
-	int ppid;
 	char cmd[BLOCK_SIZE];
 } ProcStats;
 static ProcStats
@@ -120,10 +120,10 @@ static ProcStats getProcStats(const char *procPath) {
 	if ((regexec(&regex, statContent, REG_MAX_MATCH, regMatch, REG_NOTEOL))
 		!= REG_NOMATCH) {
         char *offsetBegin = statContent + regMatch[1].rm_so, /* Beginning offset of first match. */
-            *offsetEnd = statContent + regMatch[1].rm_eo,    /* Ending offset of first match. */
-            *contentDup = strdup(statContent);               /* Duplicate of content for changing */
-        int offsetSpace = regMatch[1].rm_so - 1,             /* Offset of first space in content */
-            matchLength = (int) strcspn(offsetBegin, " ");   /* Length of the match */
+            *offsetEnd    = statContent + regMatch[1].rm_eo, /* Ending offset of first match. */
+            *contentDup   = strdup(statContent);             /* Duplicate of content for changing */
+        int offsetSpace   = regMatch[1].rm_so - 1,           /* Offset of first space in content */
+            matchLength   = (int) strcspn(offsetBegin, " "); /* Length of the match */
         /* Check the match length for parsing or replacing spaces. */
         if (matchLength > (regMatch[1].rm_eo-regMatch[1].rm_so))
             goto PARSE;
