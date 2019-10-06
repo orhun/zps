@@ -123,7 +123,12 @@ static ProcStats getProcStats(const char *procPath) {
             *offsetEnd = statContent + regMatch[1].rm_eo,    /* Ending offset of first match. */
             *contentDup = strdup(statContent);               /* Duplicate of content for changing */
         int offsetSpace = regMatch[1].rm_so - 1,             /* Offset of first space in content */
-            matchLength = 0;                                 /* Length of the match */
+            matchLength = (int) strcspn(offsetBegin, " ");   /* Length of the match */
+        /* Check the match length for parsing or replacing spaces. */
+        if (matchLength > (regMatch[1].rm_eo-regMatch[1].rm_so))
+            goto PARSE;
+        else
+            matchLength = 0;
         /* Loop through the matches using offsets. */
         while(offsetBegin < offsetEnd) {
             /* Change the space character if the space is inside the parentheses. */
@@ -143,6 +148,7 @@ static ProcStats getProcStats(const char *procPath) {
         strcpy(statContent, contentDup);
         free(contentDup);
     }
+    PARSE:
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
 		procStats.comm, procStats.state, &procStats.ppid);
