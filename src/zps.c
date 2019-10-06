@@ -34,7 +34,7 @@ static char *strPath,		    /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE],    /* Text content of a file */
 	buff,                       /* Char variable that used as buffer in read */
 	*statContent, *cmdContent,  /* Text content of the process' information file */
-	match[BLOCK_SIZE/4];
+	match[BLOCK_SIZE/4];        /* Regex match */
 typedef struct {	            /* Struct for storing process stats */
 	int pid;
 	char comm[BLOCK_SIZE/64];
@@ -45,8 +45,8 @@ typedef struct {	            /* Struct for storing process stats */
 static ProcStats
 	defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
 static va_list vargs;		    /* List of information about variable arguments */
-static regex_t regex;
-static regmatch_t
+static regex_t regex;           /* Regex struct */
+static regmatch_t               /* Regex match struct that contains start and end offsets */
 	regMatch[REG_MAX_MATCH];
 
 /*!
@@ -101,29 +101,48 @@ static ProcStats getProcStats(const char *procPath) {
 	statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
 	if (statContent == NULL)
 		goto RETURN;
-
-	if (regcomp(&regex, NAME_REGEX, REG_EXTENDED) != 0)
+    /**
+     * Some of the processes contain spaces in their name so
+     * parsing stats with sscanf fails on those cases.
+     * Regex used for replacing the spaces in process names.
+     * Compile the regex and check error.
+     */
+	if (regcomp(&regex, STAT_REGEX, REG_EXTENDED) != 0)
 		goto RETURN;
+    /**
+     * Match the content with regex pattern using the following arguments:
+     * regex:         Regex struct to execute.
+     * statContent:   Content of '/proc/<pid>/stat'.
+     * REG_MAX_MATCH: Maximum number of regex matches.
+     * regMatch:      Regex matches.
+     * REG_NOTEOL:    Flag for not matching 'match-end-of-line' operator.
+     */
 	if ((regexec(&regex, statContent, REG_MAX_MATCH, regMatch, REG_NOTEOL))
 		!= REG_NOMATCH) {
-        char *offsetBegin = statContent + regMatch[1].rm_so,
-			*offsetEnd = statContent + regMatch[1].rm_eo,
-			*contentDup = strdup(statContent);
-        int offsetSpace = regMatch[1].rm_so - 1,
-            matchLength = 0;
+        char *offsetBegin = statContent + regMatch[1].rm_so, /* Beginning offset of first match. */
+            *offsetEnd = statContent + regMatch[1].rm_eo,    /* Ending offset of first match. */
+            *contentDup = strdup(statContent);               /* Duplicate of content for changing */
+        int offsetSpace = regMatch[1].rm_so - 1,             /* Offset of first space in content */
+            matchLength = 0;                                 /* Length of the match */
+        /* Loop through the matches using offsets. */
         while(offsetBegin < offsetEnd) {
+            /* Change the space character if the space is inside the parentheses. */
             if (offsetBegin != offsetEnd && matchLength != 0)
                 contentDup[offsetSpace] = SPACE_REPLACEMENT;
+            /* Set the match length using the space span. */
             matchLength = (int) strcspn(offsetBegin, " ");
+            /* Set the current match. */
             sprintf(match, "%.*s", matchLength, offsetBegin);
+            /* Next space is always the character next to the current match. */
             offsetSpace += strlen(match) + 1;
+            /* Set the offsets for the next match. */
             offsetBegin += matchLength;
             offsetBegin += strspn(offsetBegin, " ");
         }
+        /* Update the original file content and deallocate the memory. */
         strcpy(fileContent, contentDup);
         free(contentDup);
     }
-
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
 		procStats.comm, procStats.state, &procStats.ppid);

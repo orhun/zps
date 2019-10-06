@@ -24,11 +24,11 @@
 #define USE_FDS 15                 /* Maximum number of file descriptors to use */
 #endif
 #define PROC_FS "/proc"            /* '/proc' filesystem */
-#define STAT_FILE "/stat"          /* File name of PID status */
-#define CMD_FILE "/cmdline"        /* File name of PID command */
+#define STAT_FILE "/stat"          /* PID status file */
+#define CMD_FILE "/cmdline"        /* PID command file */
 #define BLOCK_SIZE 4096            /* Fixed block size*/
 #define STATE_ZOMBIE "Z"           /* Status file entry of zombie state */
 #define DEFAULT_STATE "~"          /* Default state of the process before parsing */
-#define NAME_REGEX "\\(([^)]*)\\)"
-#define REG_MAX_MATCH 8
-#define SPACE_REPLACEMENT '_'
+#define STAT_REGEX "\\(([^)]*)\\)" /* Regex for matching the values in 'stat' file */
+#define REG_MAX_MATCH 8            /* Maximum number of regex matches. */
+#define SPACE_REPLACEMENT '_'      /* Character for replacing the spaces in regex match */
