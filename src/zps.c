@@ -76,8 +76,10 @@ static char* readFile(char *fileName, char *format, ...) {
 	 * Read bytes from file descriptor into the buffer.
 	 * Use 'read until the end' method since it's not always possible to
 	 * read file knowing its size. ('/proc' has zero-length virtual files)
+     * Also, check the boundaries while reading the file.
 	 */
-	for (int i = 0; read(fd, &buff, sizeof(buff)) != 0; i++) {
+	for (int i = 0; i < sizeof(fileContent) &&
+        read(fd, &buff, sizeof(buff)) != 0; i++) {
 		fileContent[i] = buff;
 	}
 	/* Close the file descriptor and return file content. */
@@ -95,8 +97,8 @@ static ProcStats getProcStats(const char *procPath) {
 	/* Create a structure for storing parsed process' stats. */
 	ProcStats procStats = {.state=DEFAULT_STATE};
 	/* Array for storing information about the process. */
-	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)+1],
-		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)+1];
+	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)],
+		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)];
 	/* Read the 'status' file and check error. */
 	statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
 	if (statContent == NULL)
