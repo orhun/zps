@@ -97,8 +97,8 @@ static ProcStats getProcStats(const char *procPath) {
 	/* Create a structure for storing parsed process' stats. */
 	ProcStats procStats = {.state=DEFAULT_STATE};
 	/* Array for storing information about the process. */
-	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)],
-		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)];
+	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)+1],
+		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)+1];
 	/* Read the 'status' file and check error. */
 	statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
 	if (statContent == NULL)
@@ -181,7 +181,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 	 */
     if (ftwbuf->level == 1 && tflag == FTW_D &&
         strtol(fpath + ftwbuf->base, &strPath, 10) &&
-        !strncmp(strPath, "", strlen(strPath))) {
+        !strncmp(strPath, "", strlen(strPath)+1)) {
 		/* Get the process stats from the path. */
 		ProcStats procStats = getProcStats(fpath);
 
@@ -189,7 +189,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			procStats.comm, procStats.ppid);
 		/* Check for process' file parse error. */
 		if (!strncmp(procStats.state, DEFAULT_STATE,
-			strlen(procStats.state))) {
+			strlen(procStats.state)+1)) {
 			fprintf(stderr, "Failed to parse file: '%s'\n", fpath);
 			exit(0);
 		/* Check for the process state for being zombie. */
