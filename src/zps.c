@@ -140,7 +140,7 @@ static ProcStats getProcStats(const char *procPath) {
             offsetBegin += strspn(offsetBegin, " ");
         }
         /* Update the original file content and deallocate the memory. */
-        strcpy(fileContent, contentDup);
+        strcpy(statContent, contentDup);
         free(contentDup);
     }
 	/* Parse the '/stat' file into process status struct. */
