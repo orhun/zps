@@ -95,8 +95,8 @@ static ProcStats getProcStats(const char *procPath) {
 	/* Create a structure for storing parsed process' stats. */
 	ProcStats procStats = {.state=DEFAULT_STATE};
 	/* Array for storing information about the process. */
-	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)-1],
-		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)-1];
+	char pidStatFile[strlen(procPath)+strlen(STAT_FILE)+1],
+		pidCmdFile[strlen(procPath)+strlen(CMD_FILE)+1];
 	/* Read the 'status' file and check error. */
 	statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
 	if (statContent == NULL)
