@@ -184,9 +184,6 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         !strncmp(strPath, "", strlen(strPath)+1)) {
 		/* Get the process stats from the path. */
 		ProcStats procStats = getProcStats(fpath);
-
-		fprintf(stderr, "%d %s %s %d\n", procStats.pid, procStats.state,
-			procStats.comm, procStats.ppid);
 		/* Check for process' file parse error. */
 		if (!strncmp(procStats.state, DEFAULT_STATE,
 			strlen(procStats.state)+1)) {
@@ -197,7 +194,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
 		} else {
-			//fprintf(stderr, "Process: %d\r", procStats.pid);
+			fprintf(stderr, "%d %s %s %d\n", procStats.pid, procStats.state,
+			    procStats.comm, procStats.ppid);
 		}
     }
     return EXIT_SUCCESS;
