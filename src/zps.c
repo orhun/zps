@@ -156,6 +156,9 @@ static ProcStats getProcStats(const char *procPath) {
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
 		procStats.name, procStats.state, &procStats.ppid);
+	/* Remove the parentheses around the process name. */
+	procStats.name[strlen(procStats.name)-1] = '\0';
+	memmove(procStats.name, procStats.name+1, strlen(procStats.name));
 	/* Read the 'cmdline' file and check error. */
 	cmdContent = readFile(pidCmdFile, "%s%s", procPath, CMD_FILE);
 	if (cmdContent == NULL)
