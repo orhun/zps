@@ -10,12 +10,14 @@ compiler:
 
 # Script to execute
 script:
+  # Change directory
+  - cd src/
   # Compile
-  - gcc -fprofile-arcs -ftest-coverage -O3 -Wall src/zps.c -o zps
+  - gcc -fprofile-arcs -ftest-coverage -O3 -Wall zps.c -o zps
   # Run
   - ./zps
   # Print code coverage information
-  - gcov src/zps.c
+  - gcov zps.c
 
 # Only clone the most recent commit
 git:
