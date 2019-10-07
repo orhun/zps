@@ -72,6 +72,8 @@ static char* readFile(char *fileName, char *format, ...) {
 	/* Check for file open error. */
 	if (fd == -1)
 		return NULL;
+	/* Empty the content string. */
+	fileContent[0] = '\0';
 	/**
 	 * Read bytes from file descriptor into the buffer.
 	 * Use 'read until the end' method since it's not always possible to
@@ -194,8 +196,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
 		} else {
-			fprintf(stderr, "%-6d %-6d %-2s %16.16s %-64.64s\n", procStats.pid, procStats.ppid ,procStats.state,
-			    procStats.comm, procStats.cmd);
+			fprintf(stderr, "%-6d %-6d %-2s %16.16s %-64.64s\n", procStats.pid,
+				procStats.ppid ,procStats.state, procStats.comm, procStats.cmd);
 		}
     }
     return EXIT_SUCCESS;
