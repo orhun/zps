@@ -196,7 +196,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
 		} else {
-			fprintf(stderr, "%-6d %-6d %-2s %16.16s %-64.64s\n", procStats.pid,
+			fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
 				procStats.ppid ,procStats.state, procStats.comm, procStats.cmd);
 		}
     }
@@ -209,6 +209,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
  * @return EXIT_status
  */
 static int checkProcesses() {
+	fprintf(stderr, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
+		"PID", "PPID", "STATE", "NAME", "COMMAND");
 	/**
 	 * Call ftw with the following parameters to get '/proc' contents:
 	 * PROC_FS:       '/proc' filesystem.
