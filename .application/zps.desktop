@@ -13,7 +13,7 @@ Name=zps
 Comment=<TODO>
 
 # The executable of the application
-Exec=/usr/bin/zps
+Exec=zps
 
 # Name of the icon
 Icon=utilities-system-monitor
