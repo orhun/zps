@@ -1,0 +1,22 @@
+# Ubuntu environment (18.04)
+dist: xenial
+
+# C
+language: c
+
+# Compiler
+compiler:
+  - gcc
+
+# Script to execute
+script:
+  # Compile
+  - gcc -fprofile-arcs -ftest-coverage -O3 -Wall src/zps.c -o zps
+  # Run
+  - ./zps
+  # Print code coverage information
+  - gcov src/zps.c
+
+# Only clone the most recent commit
+git:
+  depth: 1
