@@ -38,7 +38,7 @@ static char *strPath,		    /* String part of a path in '/proc' */
 typedef struct {	            /* Struct for storing process stats */
 	int pid;
 	int ppid;
-	char comm[BLOCK_SIZE/64];
+	char name[BLOCK_SIZE/64];
 	char state[BLOCK_SIZE/64];
 	char cmd[BLOCK_SIZE];
 } ProcStats;
@@ -155,7 +155,7 @@ static ProcStats getProcStats(const char *procPath) {
     PARSE:
 	/* Parse the '/stat' file into process status struct. */
 	sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
-		procStats.comm, procStats.state, &procStats.ppid);
+		procStats.name, procStats.state, &procStats.ppid);
 	/* Read the 'cmdline' file and check error. */
 	cmdContent = readFile(pidCmdFile, "%s%s", procPath, CMD_FILE);
 	if (cmdContent == NULL)
@@ -197,7 +197,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			defunctProcs[defunctCount++] = procStats;
 		} else {
 			fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
-				procStats.ppid ,procStats.state, procStats.comm, procStats.cmd);
+				procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
 		}
     }
     return EXIT_SUCCESS;
