@@ -33,7 +33,8 @@
 static int fd,		            /* File descriptor to be used in file operations */
 	defunctCount = 0,           /* Number of found defunct processes */
 	terminatedProcs = 0;		/* Number of terminated processes */
-static bool terminate = false;	/* Boolean value for terminating defunct processes */
+static bool terminate = false,	/* Boolean value for terminating defunct processes */
+	showProcList = true;        /* Boolean value for listing the running processes */
 static char *strPath,		    /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE],    /* Text content of a file */
     match[BLOCK_SIZE/4],        /* Regex match */
@@ -221,11 +222,13 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 		} else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
-			cprintf(CLR_RED, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
-				procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
+			if (showProcList)
+				cprintf(CLR_RED, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
+					procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
 		} else {
-			fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
-				procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
+			if (showProcList)
+				fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
+					procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
 		}
     }
     return EXIT_SUCCESS;
@@ -240,8 +243,9 @@ static int checkProcs() {
 	/* Set begin time. */
 	clock_t begin = clock();
 	/* Print column titles. */
-	cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
-		"PID", "PPID", "STATE", "NAME", "COMMAND");
+	if (showProcList)
+		cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
+			"PID", "PPID", "STATE", "NAME", "COMMAND");
 	/**
 	 * Call ftw with the following parameters to get '/proc' contents:
 	 * PROC_FS:       '/proc' filesystem.
@@ -290,11 +294,13 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt(argc, argv, "vts")) != -1) {
+    while ((opt = getopt(argc, argv, "vxts")) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
                 fprintf(stderr, "zps v%s\n", VERSION);
                 return EXIT_FAILURE;
+			case 'x': /* Don't list the running processes. */
+				showProcList = false;
 			case 't': /* Terminate defunct processes. */
 				terminate = true;
 				break;
