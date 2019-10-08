@@ -248,15 +248,13 @@ static int checkProcesses() {
 		cprintf(CLR_RED, "ftw failed.\n");
 		return EXIT_FAILURE;
 	}
+	/* Check for termination command line argument. */
+	if (!terminate)
+		return EXIT_SUCCESS;
 	/**
 	 * Handle the defunct processes after the ftw completes.
 	 * Terminating a process while ftw might cause interruption.
 	 */
-	fprintf(stderr, "Defunct (zombie) "
-		"processes found: %d\n", defunctCount);
-	/* Check for termination command line argument. */
-	if (!terminate)
-		return EXIT_SUCCESS;
 	for(int i = 0; i < defunctCount; i++) {
 		fprintf(stderr, "Process (%s): %d, PPID: %d ", defunctProcs[i].state,
 					defunctProcs[i].pid, defunctProcs[i].ppid);
