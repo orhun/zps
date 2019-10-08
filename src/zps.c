@@ -56,7 +56,7 @@ static regmatch_t               /* Regex match struct that contains start and en
  * @param  format
  * @return EXIT_status
  */
-static int fprintlf(char *color, char *format, ...) {
+static int cprintf(char *color, char *format, ...) {
 	/* Set the color. */
 	fprintf(stderr, "%s", color);
 	/* Format and print the data. */
@@ -211,7 +211,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 		/* Check for process' file parse error. */
 		if (!strncmp(procStats.state, DEFAULT_STATE,
 			strlen(procStats.state)+1)) {
-			fprintlf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
+			cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
 			exit(0);
 		/* Check for the process state for being zombie. */
 		} else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
@@ -231,7 +231,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
  * @return EXIT_status
  */
 static int checkProcesses() {
-	fprintlf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
+	cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
 		"PID", "PPID", "STATE", "NAME", "COMMAND");
 	/**
 	 * Call ftw with the following parameters to get '/proc' contents:
