@@ -254,14 +254,12 @@ static int checkProcesses() {
 	 */
 	fprintf(stderr, "Defunct (zombie) "
 		"processes found: %d\n", defunctCount);
+	/* Check for termination command line argument. */
+	if (!terminate)
+		return EXIT_SUCCESS;
 	for(int i = 0; i < defunctCount; i++) {
 		fprintf(stderr, "Process (%s): %d, PPID: %d ", defunctProcs[i].state,
 					defunctProcs[i].pid, defunctProcs[i].ppid);
-		/* Check for termination command line argument. */
-		if (!terminate) {
-			fprintf(stderr, "\n");
-			continue;
-		}
 		/* Send termination signal to the parent of defunct process. */
 		if(!kill(defunctProcs[i].ppid, SIGTERM))
 			fprintf(stderr, "(terminated)\n");
