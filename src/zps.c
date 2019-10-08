@@ -239,6 +239,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 static int checkProcesses() {
 	/* Set begin time. */
 	clock_t begin = clock();
+	/* Print column titles. */
 	cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
 		"PID", "PPID", "STATE", "NAME", "COMMAND");
 	/**
