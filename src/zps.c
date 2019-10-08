@@ -27,10 +27,12 @@
 #include <stdarg.h>
 #include <regex.h>
 #include <stdbool.h>
+#include <time.h>
 #include <ftw.h>
 
 static int fd,		            /* File descriptor to be used in file operations */
-	defunctCount = 0;           /* Number of found defunct processes */
+	defunctCount = 0,           /* Number of found defunct processes */
+	terminatedProcs = 0;		/* Number of terminated processes */
 static bool terminate = false;	/* Boolean value for terminating defunct processes */
 static char *strPath,		    /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE],    /* Text content of a file */
@@ -235,6 +237,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
  * @return EXIT_status
  */
 static int checkProcesses() {
+	/* Set begin time. */
+	clock_t begin = clock();
 	cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
 		"PID", "PPID", "STATE", "NAME", "COMMAND");
 	/**
@@ -257,17 +261,22 @@ static int checkProcesses() {
 	 */
 	for(int i = 0; i < defunctCount; i++) {
 		/* Send termination signal to the parent of defunct process. */
-		if(!kill(defunctProcs[i].ppid, SIGTERM))
+		if(!kill(defunctProcs[i].ppid, SIGTERM)) {
+			terminatedProcs++;
 			cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
-		else
+		} else {
 			cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED, CLR_DEFAULT);
+		}
 		/* Print defunct process' stats. */
 		fprintf(stderr, "\n PID: %d\n PPID: %d\n State: %s\n Name: %s\n",
-			defunctProcs[i].pid, defunctProcs[i].ppid, defunctProcs[i].state, defunctProcs[i].name);
+			defunctProcs[i].pid, defunctProcs[i].ppid,
+			defunctProcs[i].state, defunctProcs[i].name);
 		if (strlen(defunctProcs[i].cmd) > 0)
 			fprintf(stderr, " Command: %s\n", defunctProcs[i].cmd);
 	}
-	fprintf(stderr, "\n");
+	/* Show terminated process count and taken time. */
+	fprintf(stderr, "\n%d defunct process(es) terminated in %.2fs\n",
+		terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
 	return EXIT_SUCCESS;
 }
 
