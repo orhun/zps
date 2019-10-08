@@ -236,7 +236,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
  *
  * @return EXIT_status
  */
-static int checkProcesses() {
+static int checkProcs() {
 	/* Set begin time. */
 	clock_t begin = clock();
 	/* Print column titles. */
@@ -311,5 +311,5 @@ int main(int argc, char *argv[]) {
 	if(parseArgs(argc, argv))
 		return EXIT_SUCCESS;
 	/* Check running processes. */
-	return checkProcesses();
+	return checkProcs();
 }
