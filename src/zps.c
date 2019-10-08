@@ -241,6 +241,7 @@ static int checkProcesses() {
 	 * FTW_PHYS:      Flag for not to follow symbolic links.
 	 */
 	if (nftw(PROC_FS, procEntryRecv, USE_FDS, FTW_PHYS)) {
+		cprintf(CLR_RED, "ftw failed.\n");
 		return EXIT_FAILURE;
 	}
 	/**
