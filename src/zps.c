@@ -256,14 +256,18 @@ static int checkProcesses() {
 	 * Terminating a process while ftw might cause interruption.
 	 */
 	for(int i = 0; i < defunctCount; i++) {
-		fprintf(stderr, "Process (%s): %d, PPID: %d ", defunctProcs[i].state,
-					defunctProcs[i].pid, defunctProcs[i].ppid);
 		/* Send termination signal to the parent of defunct process. */
 		if(!kill(defunctProcs[i].ppid, SIGTERM))
-			fprintf(stderr, "(terminated)\n");
+			cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
 		else
-			fprintf(stderr, "(failed to terminate)\n");
+			cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED, CLR_DEFAULT);
+		/* Print defunct process' stats. */
+		fprintf(stderr, "\n PID: %d\n PPID: %d\n State: %s\n Name: %s\n",
+			defunctProcs[i].pid, defunctProcs[i].ppid, defunctProcs[i].state, defunctProcs[i].name);
+		if (strlen(defunctProcs[i].cmd) > 0)
+			fprintf(stderr, " Command: %s\n", defunctProcs[i].cmd);
 	}
+	fprintf(stderr, "\n");
 	return EXIT_SUCCESS;
 }
 
