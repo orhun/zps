@@ -49,11 +49,21 @@ static regex_t regex;           /* Regex struct */
 static regmatch_t               /* Regex match struct that contains start and end offsets */
 	regMatch[REG_MAX_MATCH];
 
+/*!
+ * Write colored and formatted data to stream. (stderr)
+ *
+ * @param  color
+ * @param  format
+ * @return EXIT_status
+ */
 static int fprintlf(char *color, char *format, ...) {
+	/* Set the color. */
 	fprintf(stderr, "%s", color);
+	/* Format and print the data. */
 	va_start(vargs, format);
 	vfprintf(stderr, format, vargs);
 	va_end(vargs);
+	/* Set color to the default. */
 	fprintf(stderr, "%s", CLR_DEFAULT);
 	return EXIT_SUCCESS;
 }
