@@ -34,5 +34,4 @@
 #define SPACE_REPLACEMENT '_'      /* Character for replacing the spaces in regex match */
 #define CLR_DEFAULT "\x1b[0m"      /* Default color and style attributes */
 #define CLR_BOLD "\x1b[1m"         /* Bold */
-#define CLR_GREEN "\x1b[32m"       /* Color green */
 #define CLR_RED "\x1b[31m"         /* Color red */
