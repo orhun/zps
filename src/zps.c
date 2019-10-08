@@ -252,8 +252,8 @@ static int checkProcesses() {
 	 * Handle the defunct processes after the ftw completes.
 	 * Terminating a process while ftw might cause interruption.
 	 */
-	fprintf(stderr, "%c[2KDefunct (zombie) "
-		"processes found: %d\n", 27, defunctCount);
+	fprintf(stderr, "Defunct (zombie) "
+		"processes found: %d\n", defunctCount);
 	for(int i = 0; i < defunctCount; i++) {
 		fprintf(stderr, "Process (%s): %d, PPID: %d ", defunctProcs[i].state,
 					defunctProcs[i].pid, defunctProcs[i].ppid);
