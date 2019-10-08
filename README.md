@@ -1,2 +1,2 @@
-# zps
+# zps [![Travis Build](https://img.shields.io/travis/orhun/zps.svg?style=flat-square)](https://travis-ci.org/orhun/zps)
 `zps` aims to clean up (or manage) zombie processes automatically on GNU/Linux. (`work in progress`)
