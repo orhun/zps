@@ -26,10 +26,12 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <regex.h>
+#include <stdbool.h>
 #include <ftw.h>
 
 static int fd,		            /* File descriptor to be used in file operations */
 	defunctCount = 0;           /* Number of found defunct processes */
+static bool terminate = false;	/* Boolean value for terminating defunct processes */
 static char *strPath,		    /* String part of a path in '/proc' */
 	fileContent[BLOCK_SIZE],    /* Text content of a file */
     match[BLOCK_SIZE/4],        /* Regex match */
@@ -255,6 +257,11 @@ static int checkProcesses() {
 	for(int i = 0; i < defunctCount; i++) {
 		fprintf(stderr, "Process (%s): %d, PPID: %d ", defunctProcs[i].state,
 					defunctProcs[i].pid, defunctProcs[i].ppid);
+		/* Check for termination command line argument. */
+		if (!terminate) {
+			fprintf(stderr, "\n");
+			continue;
+		}
 		/* Send termination signal to the parent of defunct process. */
 		if(!kill(defunctProcs[i].ppid, SIGTERM))
 			fprintf(stderr, "(terminated)\n");
@@ -273,11 +280,14 @@ static int checkProcesses() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt(argc, argv, "v")) != -1) {
+    while ((opt = getopt(argc, argv, "vt")) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
                 fprintf(stderr, "zps v%s\n", VERSION);
                 return EXIT_FAILURE;
+			case 't': /* Terminate defunct processes. */
+				terminate = true;
+				break;
         }
     }
     return EXIT_SUCCESS;
