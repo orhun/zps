@@ -217,6 +217,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 		} else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
 			/* Add process stats to the array of defunct process stats. */
 			defunctProcs[defunctCount++] = procStats;
+			cprintf(CLR_RED, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
+				procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
 		} else {
 			fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
 				procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
