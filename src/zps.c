@@ -225,10 +225,9 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 			if (showProcList)
 				cprintf(CLR_RED, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
 					procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
-		} else {
-			if (showProcList)
-				fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
-					procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
+		} else if (showProcList) {
+			fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
+				procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
 		}
     }
     return EXIT_SUCCESS;
