@@ -299,6 +299,7 @@ static int parseArgs(int argc, char **argv){
 				terminate = true;
 				break;
 			case 's': /* Silent mode. */
+				/* Redirect stderr to /dev/null */
 				fd = open("/dev/null", O_WRONLY);
 				if (fd != -1) {
 					dup2(fd, 2);
