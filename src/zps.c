@@ -290,13 +290,20 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt(argc, argv, "vt")) != -1) {
+    while ((opt = getopt(argc, argv, "vts")) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
                 fprintf(stderr, "zps v%s\n", VERSION);
                 return EXIT_FAILURE;
 			case 't': /* Terminate defunct processes. */
 				terminate = true;
+				break;
+			case 's': /* Silent mode. */
+				fd = open("/dev/null", O_WRONLY);
+				if (fd != -1) {
+					dup2(fd, 2);
+					close(fd);
+				}
 				break;
         }
     }
