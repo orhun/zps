@@ -32,3 +32,5 @@
 #define STAT_REGEX "\\(([^)]*)\\)" /* Regex for matching the values in 'stat' file */
 #define REG_MAX_MATCH 8            /* Maximum number of regex matches */
 #define SPACE_REPLACEMENT '_'      /* Character for replacing the spaces in regex match */
+#define CLR_DEFAULT "\x1b[0m"
+#define CLR_GREEN "\x1b[32m"
