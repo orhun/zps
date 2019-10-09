@@ -298,9 +298,9 @@ static int parseArgs(int argc, char **argv){
             case 'v': /* Show version information. */
                 fprintf(stderr, "zps v%s\n", VERSION);
                 return EXIT_FAILURE;
-			case 't': /* Terminate defunct processes. */
+			case 't': /* Don't list the running processes. */
 				showProcList = false;
-			case 'x': /* Don't list the running processes. */
+			case 'x': /* Terminate defunct processes. */
 				terminate = true;
 				break;
 			case 's': /* Silent mode. */
