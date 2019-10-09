@@ -57,6 +57,8 @@ static regmatch_t               /* Regex match struct that contains start and en
 static struct option opts[] = { /* Long options for command line arguments  */
     {"version", no_argument,
 		NULL, 'v'},
+	{"clean", no_argument,
+		NULL, 'c'},
 };
 
 /*!
