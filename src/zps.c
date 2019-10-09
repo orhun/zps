@@ -272,9 +272,9 @@ static int checkProcs() {
 		/* Send termination signal to the parent of defunct process. */
 		if(!kill(defunctProcs[i].ppid, SIGTERM)) {
 			terminatedProcs++;
-			cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
+			cprintf(CLR_BOLD, "\n[%sParent terminated%s]", CLR_RED, CLR_DEFAULT);
 		} else {
-			cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED, CLR_DEFAULT);
+			cprintf(CLR_BOLD, "\n[%sFailed to terminate parent%s]", CLR_RED, CLR_DEFAULT);
 		}
 		/* Print defunct process' stats. */
 		fprintf(stderr, "\n PID: %d\n PPID: %d\n State: %s\n Name: %s\n",
