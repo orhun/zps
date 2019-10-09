@@ -56,7 +56,7 @@ static regmatch_t               /* Regex match struct that contains start and en
 	regMatch[REG_MAX_MATCH];
 static struct option opts[] = { /* Long options for command line arguments  */
     {"version", no_argument,
-		NULL, 'v'}
+		NULL, 'v'},
 };
 
 /*!
@@ -272,9 +272,9 @@ static int checkProcs() {
 		/* Send termination signal to the parent of defunct process. */
 		if(!kill(defunctProcs[i].ppid, SIGTERM)) {
 			terminatedProcs++;
-			cprintf(CLR_BOLD, "\n[%sParent terminated%s]", CLR_RED, CLR_DEFAULT);
+			cprintf(CLR_BOLD, "\n[%sPP terminated%s]", CLR_RED, CLR_DEFAULT);
 		} else {
-			cprintf(CLR_BOLD, "\n[%sFailed to terminate parent%s]", CLR_RED, CLR_DEFAULT);
+			cprintf(CLR_BOLD, "\n[%sFailed to terminate PP%s]", CLR_RED, CLR_DEFAULT);
 		}
 		/* Print defunct process' stats. */
 		fprintf(stderr, "\n PID: %d\n PPID: %d\n State: %s\n Name: %s\n",
@@ -284,7 +284,7 @@ static int checkProcs() {
 			fprintf(stderr, " Command: %s\n", defunctProcs[i].cmd);
 	}
 	/* Show terminated process count and taken time. */
-	fprintf(stderr, "\n%d defunct process(es) terminated in %.2fs\n",
+	fprintf(stderr, "\n%d defunct process(es) cleaned up in %.2fs\n",
 		terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
 	return EXIT_SUCCESS;
 }
@@ -306,7 +306,7 @@ static int parseArgs(int argc, char **argv){
                 return EXIT_FAILURE;
 			case 'c': /* Don't list the running processes. */
 				showProcList = false;
-			case 'x': /* Clean up defunct processes. */
+			case 'x': /* Clean up the defunct processes. */
 				terminate = true;
 				break;
 			case 's': /* Silent mode. */
