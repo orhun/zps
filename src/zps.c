@@ -57,6 +57,8 @@ static regmatch_t               /* Regex match struct that contains start and en
 static struct option opts[] = { /* Long options for command line arguments  */
     {"version", no_argument,
 		NULL, 'v'},
+	{"help", no_argument,
+		NULL, 'h'},
 	{"clean", no_argument,
 		NULL, 'c'},
 	{"silent", no_argument,
@@ -302,11 +304,14 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt_long(argc, argv, "vcxs",
+    while ((opt = getopt_long(argc, argv, "vhcxs",
 		opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
                 fprintf(stderr, "zps v%s\n", VERSION);
+                return EXIT_FAILURE;
+			case 'h': /* Show help message. */
+                fprintf(stderr, "zps help\n");
                 return EXIT_FAILURE;
 			case 'c': /* Don't list the running processes. */
 				showProcList = false;
