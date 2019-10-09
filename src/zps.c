@@ -298,15 +298,15 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt_long(argc, argv, "vtxs",
+    while ((opt = getopt_long(argc, argv, "vcxs",
 		opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
                 fprintf(stderr, "zps v%s\n", VERSION);
                 return EXIT_FAILURE;
-			case 't': /* Don't list the running processes. */
+			case 'c': /* Don't list the running processes. */
 				showProcList = false;
-			case 'x': /* Terminate defunct processes. */
+			case 'x': /* Clean up defunct processes. */
 				terminate = true;
 				break;
 			case 's': /* Silent mode. */
