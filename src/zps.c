@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
@@ -53,6 +54,10 @@ static va_list vargs;		    /* List of information about variable arguments */
 static regex_t regex;           /* Regex struct */
 static regmatch_t               /* Regex match struct that contains start and end offsets */
 	regMatch[REG_MAX_MATCH];
+static struct option opts[] = { /* Long options for command line arguments  */
+    {"version", no_argument,
+		NULL, 'v'}
+};
 
 /*!
  * Write colored and formatted data to stream. (stderr)
@@ -293,7 +298,8 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt(argc, argv, "vtxs")) != -1) {
+    while ((opt = getopt_long(argc, argv, "vtxs",
+		opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
                 fprintf(stderr, "zps v%s\n", VERSION);
