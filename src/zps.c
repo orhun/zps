@@ -31,17 +31,17 @@
 #include <time.h>
 #include <ftw.h>
 
-static int fd,		            /* File descriptor to be used in file operations */
+static int fd,                  /* File descriptor to be used in file operations */
     defunctCount = 0,           /* Number of found defunct processes */
-    terminatedProcs = 0;		/* Number of terminated processes */
-static bool terminate = false,	/* Boolean value for terminating defunct processes */
+    terminatedProcs = 0;        /* Number of terminated processes */
+static bool terminate = false,  /* Boolean value for terminating defunct processes */
     showProcList = true;        /* Boolean value for listing the running processes */
-static char *strPath,		    /* String part of a path in '/proc' */
+static char *strPath,           /* String part of a path in '/proc' */
     fileContent[BLOCK_SIZE],    /* Text content of a file */
     match[BLOCK_SIZE/4],        /* Regex match */
     buff,                       /* Char variable that used as buffer in read */
     *statContent, *cmdContent;  /* Text content of the process' information file */
-typedef struct {	            /* Struct for storing process stats */
+typedef struct {                /* Struct for storing process stats */
     int pid;
     int ppid;
     char name[BLOCK_SIZE/64];
@@ -50,7 +50,7 @@ typedef struct {	            /* Struct for storing process stats */
 } ProcStats;
 static ProcStats
     defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
-static va_list vargs;		    /* List of information about variable arguments */
+static va_list vargs;           /* List of information about variable arguments */
 static regex_t regex;           /* Regex struct */
 static regmatch_t               /* Regex match struct that contains start and end offsets */
     regMatch[REG_MAX_MATCH];
