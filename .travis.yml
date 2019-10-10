@@ -8,6 +8,9 @@ language: c
 compiler:
   - gcc
 
+# Disable sudo for faster build
+sudo: false
+
 # Script to execute
 script:
   # Change directory
@@ -18,6 +21,10 @@ script:
   - ./zps
   # Print code coverage information
   - gcov zps.c
+
+# Send report to codecov
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 
 # Only clone the most recent commit
 git:
