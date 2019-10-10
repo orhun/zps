@@ -223,15 +223,15 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         if (!strncmp(procStats.state, DEFAULT_STATE,
             strlen(procStats.state)+1)) {
             cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
-            exit(0);
+            return EXIT_FAILURE;
         /* Check for the process state for being zombie. */
         } else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
             /* Add process stats to the array of defunct process stats. */
             defunctProcs[defunctCount++] = procStats;
-            if (showProcList)
+            if (showProcList == true)
                 cprintf(CLR_RED, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
                     procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
-        } else if (showProcList) {
+        } else if (showProcList == true) {
             fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
                 procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
         }
