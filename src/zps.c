@@ -138,16 +138,14 @@ static ProcStats getProcStats(const char *procPath) {
         pidCmdFile[strlen(procPath)+strlen(CMD_FILE)+1];
     /* Read the 'status' file and check error. */
     statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
-    if (statContent == NULL)
-        goto RETURN;
+    if (statContent == NULL) return procStats;
     /**
      * Some of the processes contain spaces in their name so
      * parsing stats with sscanf fails on those cases.
      * Regex used for replacing the spaces in process names.
      * Compile the regex and check error.
      */
-    if (regcomp(&regex, STAT_REGEX, REG_EXTENDED) != 0)
-        goto RETURN;
+    if (regcomp(&regex, STAT_REGEX, REG_EXTENDED) != 0) return procStats;
     /**
      * Match the content with regex pattern using the following arguments:
      * regex:         Regex struct to execute.
@@ -164,30 +162,28 @@ static ProcStats getProcStats(const char *procPath) {
         int offsetSpace   = regMatch[1].rm_so - 1,           /* Offset of first space in content */
             matchLength   = (int) strcspn(offsetBegin, " "); /* Length of the match */
         /* Check the match length for parsing or replacing spaces. */
-        if (matchLength > (regMatch[1].rm_eo-regMatch[1].rm_so))
-            goto PARSE;
-        else
+        if (matchLength <= (regMatch[1].rm_eo-regMatch[1].rm_so)) {
             matchLength = 0;
-        /* Loop through the matches using offsets. */
-        while(offsetBegin < offsetEnd) {
-            /* Change the space character if the space is inside the parentheses. */
-            if (offsetBegin != offsetEnd && matchLength != 0)
-                contentDup[offsetSpace] = SPACE_REPLACEMENT;
-            /* Set the match length using the space span. */
-            matchLength = (int) strcspn(offsetBegin, " ");
-            /* Set the current match. */
-            sprintf(match, "%.*s", matchLength, offsetBegin);
-            /* Next space is always the character next to the current match. */
-            offsetSpace += strlen(match) + 1;
-            /* Set the offsets for the next match. */
-            offsetBegin += matchLength;
-            offsetBegin += strspn(offsetBegin, " ");
+            /* Loop through the matches using offsets. */
+            while(offsetBegin < offsetEnd) {
+                /* Change the space character if the space is inside the parentheses. */
+                if (offsetBegin != offsetEnd && matchLength != 0)
+                    contentDup[offsetSpace] = SPACE_REPLACEMENT;
+                /* Set the match length using the space span. */
+                matchLength = (int) strcspn(offsetBegin, " ");
+                /* Set the current match. */
+                sprintf(match, "%.*s", matchLength, offsetBegin);
+                /* Next space is always the character next to the current match. */
+                offsetSpace += strlen(match) + 1;
+                /* Set the offsets for the next match. */
+                offsetBegin += matchLength;
+                offsetBegin += strspn(offsetBegin, " ");
+            }
+            /* Update the original file content and deallocate the memory. */
+            strcpy(statContent, contentDup);
+            free(contentDup);
         }
-        /* Update the original file content and deallocate the memory. */
-        strcpy(statContent, contentDup);
-        free(contentDup);
     }
-    PARSE:
     /* Parse the '/stat' file into process status struct. */
     sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
         procStats.name, procStats.state, &procStats.ppid);
@@ -196,12 +192,11 @@ static ProcStats getProcStats(const char *procPath) {
     memmove(procStats.name, procStats.name+1, strlen(procStats.name));
     /* Read the 'cmdline' file and check error. */
     cmdContent = readFile(pidCmdFile, "%s%s", procPath, CMD_FILE);
-    if (cmdContent == NULL)
-        goto RETURN;
+    if (cmdContent == NULL) return procStats;
     /* Update the command variable in the process status struct. */
     strcpy(procStats.cmd, cmdContent);
     /* Return the process stats. */
-    RETURN: return procStats;
+    return procStats;
 }
 
 /*!
