@@ -334,5 +334,6 @@ int main(int argc, char *argv[]) {
     if(parseArgs(argc, argv))
         return EXIT_SUCCESS;
     /* Check running processes. */
-    return checkProcs();
+    int procsChecked = checkProcs();
+    return procsChecked;
 }
