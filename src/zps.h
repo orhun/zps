@@ -20,10 +20,8 @@
 #define _XOPEN_SOURCE 700          /* POSIX.1-2008 + XSI (SuSv4) */
 #define _LARGEFILE64_SOURCE        /* Enable LFS */
 #define _FILE_OFFSET_BITS 64       /* Support 64-bit file sizes */
-#ifndef USE_FDS
-#define USE_FDS 15                 /* Maximum number of file descriptors to use */
-#endif
-#define PROC_FS "/proc"            /* '/proc' filesystem */
+#define MAX_FILE_DESCRIPTORS 15    /* Maximum number of file descriptors to use */
+#define PROC_FILESYSTEM "/proc"    /* '/proc' filesystem */
 #define STAT_FILE "/stat"          /* PID status file */
 #define CMD_FILE "/cmdline"        /* PID command file */
 #define BLOCK_SIZE 4096            /* Fixed block size*/
