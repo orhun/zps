@@ -31,9 +31,10 @@
 #include <time.h>
 #include <ftw.h>
 
-static int fd,                  /* File descriptor to be used in file operations */
+static unsigned int fd,         /* File descriptor to be used in file operations */
     defunctCount = 0,           /* Number of found defunct processes */
-    terminatedProcs = 0;        /* Number of terminated processes */
+    terminatedProcs = 0,        /* Number of terminated processes */
+    procsChecked = 0;           /* Return value for the process check operation */
 static bool terminate = false,  /* Boolean value for terminating defunct processes */
     showProcList = true;        /* Boolean value for listing the running processes */
 static char *strPath,           /* String part of a path in '/proc' */
@@ -42,8 +43,8 @@ static char *strPath,           /* String part of a path in '/proc' */
     buff,                       /* Char variable that used as buffer in read */
     *statContent, *cmdContent;  /* Text content of the process' information file */
 typedef struct {                /* Struct for storing process stats */
-    int pid;
-    int ppid;
+    unsigned int pid;
+    unsigned int ppid;
     char name[BLOCK_SIZE/64];
     char state[BLOCK_SIZE/64];
     char cmd[BLOCK_SIZE];
@@ -158,7 +159,7 @@ static ProcStats getProcStats(const char *procPath) {
         char *offsetBegin = statContent + regMatch[1].rm_so, /* Beginning offset of first match. */
             *offsetEnd    = statContent + regMatch[1].rm_eo, /* Ending offset of first match. */
             *contentDup   = strdup(statContent);             /* Duplicate of content for changing */
-        int offsetSpace   = regMatch[1].rm_so - 1,           /* Offset of first space in content */
+        int unsigned offsetSpace   = regMatch[1].rm_so - 1,  /* Offset of first space in content */
             matchLength   = (int) strcspn(offsetBegin, " "); /* Length of the match */
         /* Check the match length for parsing or replacing spaces. */
         if (matchLength <= (regMatch[1].rm_eo-regMatch[1].rm_so)) {
@@ -331,6 +332,6 @@ int main(int argc, char *argv[]) {
     /* Parse command line arguments. */
     if(parseArgs(argc, argv)) return EXIT_SUCCESS;
     /* Check running processes. */
-    int procsChecked = checkProcs();
+    procsChecked = checkProcs();
     return procsChecked;
 }
