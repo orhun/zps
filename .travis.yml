@@ -14,7 +14,8 @@ script:
   # Compile
   - gcc -fprofile-arcs -ftest-coverage -O3 -Wall zps.c -o zps
   # Run
-  - ./zps
+  - ./zps -v
+  - ./zps -x
   # Print code coverage information
   - gcov zps.c
 # Send report to codecov
