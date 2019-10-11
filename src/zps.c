@@ -74,7 +74,7 @@ static struct option opts[] = { /* Long options for command line arguments  */
  *
  * @param  color
  * @param  format
- * @return EXIT_status
+ * @return EXIT_SUCCESS
  */
 static int cprintf(char *color, char *format, ...) {
     /* Set the color. */
@@ -128,27 +128,19 @@ static char* readFile(char *fileName, char *format, ...) {
 }
 
 /*!
- * Parse and return the stats from process path.
+ * Format the content of '/proc/<pid>/stat' using regex.
  *
- * @param procPath   (process path in '/proc')
- * @return procStats (process stats)
+ * @param statContent
+ * @return EXIT_status
  */
-static ProcStats getProcStats(const char *procPath) {
-    /* Create a structure for storing parsed process' stats. */
-    ProcStats procStats = {.state=DEFAULT_STATE};
-    /* Array for storing information about the process. */
-    char pidStatFile[strlen(procPath)+strlen(STAT_FILE)+1],
-        pidCmdFile[strlen(procPath)+strlen(CMD_FILE)+1];
-    /* Read the 'status' file and check error. */
-    statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
-    if (statContent == NULL) return procStats;
+static int formatStatContent(char *statContent) {
     /**
      * Some of the processes contain spaces in their name so
      * parsing stats with sscanf fails on those cases.
      * Regex used for replacing the spaces in process names.
      * Compile the regex and check error.
      */
-    if (regcomp(&regex, STAT_REGEX, REG_EXTENDED) != 0) return procStats;
+    if (regcomp(&regex, STAT_REGEX, REG_EXTENDED) != 0) return EXIT_FAILURE;
     /**
      * Match the content with regex pattern using the following arguments:
      * regex:         Regex struct to execute.
@@ -187,6 +179,25 @@ static ProcStats getProcStats(const char *procPath) {
             free(contentDup);
         }
     }
+    return EXIT_SUCCESS;
+}
+
+/*!
+ * Parse and return the stats from process path.
+ *
+ * @param procPath   (process path in '/proc')
+ * @return procStats (process stats)
+ */
+static ProcStats getProcStats(const char *procPath) {
+    /* Create a structure for storing parsed process' stats. */
+    ProcStats procStats = {.state=DEFAULT_STATE};
+    /* Array for storing information about the process. */
+    char pidStatFile[strlen(procPath)+strlen(STAT_FILE)+1],
+        pidCmdFile[strlen(procPath)+strlen(CMD_FILE)+1];
+    /* Read the 'status' file. */
+    statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
+    /* Check file read error and fix file content. */
+    if (statContent == NULL || formatStatContent(statContent)) return procStats;
     /* Parse the '/stat' file into process status struct. */
     sscanf(statContent, "%d %64s %64s %d", &procStats.pid,
         procStats.name, procStats.state, &procStats.ppid);
@@ -302,7 +313,7 @@ static int checkProcs() {
  *
  * @param argc (argument count)
  * @param argv (argument vector)
- * @return EXIT_status
+ * @return EXIT_SUCCESS
  */
 static int parseArgs(int argc, char **argv){
     int opt;
