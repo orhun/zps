@@ -198,7 +198,7 @@ static ProcStats getProcStats(const char *procPath) {
     /* Check file read error and fix file content. */
     if (statContent == NULL || formatStatContent(statContent)) return procStats;
     /* Parse the '/stat' file into process status struct. */
-    sscanf(statContent, "%i %64s %64s %i", &procStats.pid,
+    sscanf(statContent, "%u %64s %64s %u", &procStats.pid,
         procStats.name, procStats.state, &procStats.ppid);
     /* Remove the parentheses around the process name. */
     procStats.name[strlen(procStats.name)-1] = '\0';
@@ -295,14 +295,14 @@ static int checkProcs() {
                 CLR_DEFAULT);
         }
         /* Print defunct process' stats. */
-        fprintf(stderr, "\n PID: %i\n PPID: %i\n State: %s\n Name: %s\n",
+        fprintf(stderr, "\n PID: %u\n PPID: %u\n State: %s\n Name: %s\n",
             defunctProcs[i].pid, defunctProcs[i].ppid,
             defunctProcs[i].state, defunctProcs[i].name);
         if (strlen(defunctProcs[i].cmd) > 0) fprintf(stderr,
             " Command: %s\n", defunctProcs[i].cmd);
     }
     /* Show terminated process count and taken time. */
-    fprintf(stderr, "\n%i defunct process(es) cleaned up in %.2fs\n",
+    fprintf(stderr, "\n%u defunct process(es) cleaned up in %.2fs\n",
         terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
     return EXIT_SUCCESS;
 }
