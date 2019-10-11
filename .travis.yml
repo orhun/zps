@@ -9,11 +9,13 @@ compiler:
 sudo: false
 # Script to execute
 script:
-  # Change directory
-  - cd src/
-  # Compile
+  # Compile the example & run
+  - cd example
+  - gcc -O3 -Wall zproc.c -o zproc.o
+  - ./zproc.o &>/dev/null &
+  # Compile the main source & run
+  - cd ../src/
   - gcc -fprofile-arcs -ftest-coverage -O3 -Wall zps.c -o zps
-  # Run
   - ./zps -v
   - ./zps -x
   # Print code coverage information
