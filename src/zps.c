@@ -43,12 +43,14 @@ static char match[BLOCK_SIZE/4];         /* Regex match */
 static char buff;                        /* Char variable that used as buffer in read */
 static char *statContent;                /* Text content of the process' stat file */
 static char *cmdContent;                 /* Text content of the process' command file */
+static char *procEntryColor;             /* Color code of process entry to print */
 typedef struct {                         /* Struct for storing process stats */
     unsigned int pid;
     unsigned int ppid;
     char name[BLOCK_SIZE/64];
     char state[BLOCK_SIZE/64];
     char cmd[BLOCK_SIZE];
+    bool defunct;
 } ProcStats;
 static ProcStats
     defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
@@ -191,6 +193,8 @@ static ProcStats getProcStats(const char *procPath) {
     /* Remove the parentheses around the process name. */
     procStats.name[strlen(procStats.name)-1] = '\0';
     memmove(procStats.name, procStats.name+1, strlen(procStats.name));
+    /* Set the defunct process state. */
+    procStats.defunct = (strstr(procStats.state, STATE_ZOMBIE) != NULL);
     /* Read the 'cmdline' file and check error. */
     cmdContent = readFile(pidCmdFile, "%s%s", procPath, CMD_FILE);
     if (cmdContent == NULL) return procStats;
@@ -222,21 +226,22 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     }
     /* Get the process stats from the path. */
     ProcStats procStats = getProcStats(fpath);
+    /* Set process entry color to default. */
+    procEntryColor = CLR_DEFAULT;
     /* Check for process' file parse error. */
     if (!strncmp(procStats.state, DEFAULT_STATE,
         strlen(procStats.state)+1)) {
         cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
         return EXIT_FAILURE;
     /* Check for the process state for being zombie. */
-    } else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
+    } else if (procStats.defunct == true) {
         /* Add process stats to the array of defunct process stats. */
         defunctProcs[defunctCount++] = procStats;
-        if (showProcList == true) cprintf(CLR_RED, STAT_FORMAT, procStats.pid,
-            procStats.ppid, procStats.state, procStats.name, procStats.cmd);
-        return EXIT_SUCCESS;
+        procEntryColor = CLR_RED;
     }
     /* Print the process' stats. */
-    if (showProcList == true) fprintf(stderr, STAT_FORMAT, procStats.pid,
+    if (showProcList == true) cprintf(procEntryColor,
+        "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
         procStats.ppid, procStats.state, procStats.name, procStats.cmd);
     return EXIT_SUCCESS;
 }
@@ -276,7 +281,8 @@ static int checkProcs() {
             terminatedProcs++;
             cprintf(CLR_BOLD, "\n[%sPP terminated%s]", CLR_RED, CLR_DEFAULT);
         } else {
-            cprintf(CLR_BOLD, "\n[%sFailed to terminate PP%s]", CLR_RED, CLR_DEFAULT);
+            cprintf(CLR_BOLD, "\n[%sFailed to terminate PP%s]", CLR_RED,
+                CLR_DEFAULT);
         }
         /* Print defunct process' stats. */
         fprintf(stderr, "\n PID: %d\n PPID: %d\n State: %s\n Name: %s\n",
