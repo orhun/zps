@@ -31,18 +31,19 @@
 #include <time.h>
 #include <ftw.h>
 
-static unsigned int fd,         /* File descriptor to be used in file operations */
-    defunctCount = 0,           /* Number of found defunct processes */
-    terminatedProcs = 0,        /* Number of terminated processes */
-    procsChecked = 0;           /* Return value for the process check operation */
-static bool terminate = false,  /* Boolean value for terminating defunct processes */
-    showProcList = true;        /* Boolean value for listing the running processes */
-static char *strPath,           /* String part of a path in '/proc' */
-    fileContent[BLOCK_SIZE],    /* Text content of a file */
-    match[BLOCK_SIZE/4],        /* Regex match */
-    buff,                       /* Char variable that used as buffer in read */
-    *statContent, *cmdContent;  /* Text content of the process' information file */
-typedef struct {                /* Struct for storing process stats */
+static unsigned int fd;                  /* File descriptor to be used in file operations */
+static unsigned int defunctCount = 0;    /* Number of found defunct processes */
+static unsigned int terminatedProcs = 0; /* Number of terminated processes */
+static unsigned int procsChecked = 0;    /* Return value for the process check operation */
+static bool terminate = false;           /* Boolean value for terminating defunct processes */
+static bool showProcList = true;         /* Boolean value for listing the running processes */
+static char *strPath;                    /* String part of a path in '/proc' */
+static char fileContent[BLOCK_SIZE];     /* Text content of a file */
+static char match[BLOCK_SIZE/4];         /* Regex match */
+static char buff;                        /* Char variable that used as buffer in read */
+static char *statContent;                /* Text content of the process' stat file */
+static char *cmdContent;                 /* Text content of the process' command file */
+typedef struct {                         /* Struct for storing process stats */
     unsigned int pid;
     unsigned int ppid;
     char name[BLOCK_SIZE/64];
@@ -156,11 +157,11 @@ static ProcStats getProcStats(const char *procPath) {
      */
     if ((regexec(&regex, statContent, REG_MAX_MATCH, regMatch, REG_NOTEOL))
         != REG_NOMATCH) {
-        char *offsetBegin = statContent + regMatch[1].rm_so, /* Beginning offset of first match. */
-            *offsetEnd    = statContent + regMatch[1].rm_eo, /* Ending offset of first match. */
-            *contentDup   = strdup(statContent);             /* Duplicate of content for changing */
-        int unsigned offsetSpace   = regMatch[1].rm_so - 1,  /* Offset of first space in content */
-            matchLength   = (int) strcspn(offsetBegin, " "); /* Length of the match */
+        char *offsetBegin = statContent + regMatch[1].rm_so; /* Beginning offset of first match.  */
+        char *offsetEnd   = statContent + regMatch[1].rm_eo; /* Ending offset of first match.     */
+        char *contentDup  = strdup(statContent);             /* Duplicate of content for changing */
+        unsigned int offsetSpace = regMatch[1].rm_so - 1;    /* Offset of first space in content  */
+        unsigned int matchLength = (int) strcspn(offsetBegin, " ");       /* Length of the match  */
         /* Check the match length for parsing or replacing spaces. */
         if (matchLength <= (regMatch[1].rm_eo-regMatch[1].rm_so)) {
             matchLength = 0;
