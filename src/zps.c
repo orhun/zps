@@ -118,8 +118,7 @@ static char* readFile(char *fileName, char *format, ...) {
      * read file knowing its size. ('/proc' has zero-length virtual files)
      * Also, check the boundaries while reading the file.
      */
-    for (int i = 0; i < sizeof(fileContent) &&
-        read(fd, &buff, sizeof(buff)) != 0; i++) {
+    for (int i = 0; read(fd, &buff, sizeof(buff)) != 0; i++) {
         fileContent[i] = buff;
     }
     /* Close the file descriptor and return file content. */
