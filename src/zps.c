@@ -210,33 +210,34 @@ static ProcStats getProcStats(const char *procPath) {
  * @return EXIT_status
  */
 static int procEntryRecv(const char *fpath, const struct stat *sb,
-        int tflag, struct FTW *ftwbuf) {
+    int tflag, struct FTW *ftwbuf) {
     /**
      * Check for depth of the fpath (1), type of the entry (directory),
      * base of the fpath (numeric value) to filter entries except PID.
      */
-    if (ftwbuf->level == 1 && tflag == FTW_D &&
-        strtol(fpath + ftwbuf->base, &strPath, 10) &&
-        !strncmp(strPath, "", strlen(strPath)+1)) {
-        /* Get the process stats from the path. */
-        ProcStats procStats = getProcStats(fpath);
-        /* Check for process' file parse error. */
-        if (!strncmp(procStats.state, DEFAULT_STATE,
-            strlen(procStats.state)+1)) {
-            cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
-            return EXIT_FAILURE;
-        /* Check for the process state for being zombie. */
-        } else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
-            /* Add process stats to the array of defunct process stats. */
-            defunctProcs[defunctCount++] = procStats;
-            if (showProcList == true)
-                cprintf(CLR_RED, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
-                    procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
-        } else if (showProcList == true) {
-            fprintf(stderr, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
-                procStats.ppid ,procStats.state, procStats.name, procStats.cmd);
-        }
+    if (ftwbuf->level != 1 || tflag != FTW_D ||
+        !strtol(fpath + ftwbuf->base, &strPath, 10) ||
+        strncmp(strPath, "", strlen(strPath)+1)) {
+        return EXIT_SUCCESS;
     }
+    /* Get the process stats from the path. */
+    ProcStats procStats = getProcStats(fpath);
+    /* Check for process' file parse error. */
+    if (!strncmp(procStats.state, DEFAULT_STATE,
+        strlen(procStats.state)+1)) {
+        cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
+        return EXIT_FAILURE;
+    /* Check for the process state for being zombie. */
+    } else if (strstr(procStats.state, STATE_ZOMBIE) != NULL) {
+        /* Add process stats to the array of defunct process stats. */
+        defunctProcs[defunctCount++] = procStats;
+        if (showProcList == true) cprintf(CLR_RED, STAT_FORMAT, procStats.pid,
+            procStats.ppid, procStats.state, procStats.name, procStats.cmd);
+        return EXIT_SUCCESS;
+    }
+    /* Print the process' stats. */
+    if (showProcList == true) fprintf(stderr, STAT_FORMAT, procStats.pid,
+        procStats.ppid, procStats.state, procStats.name, procStats.cmd);
     return EXIT_SUCCESS;
 }
 

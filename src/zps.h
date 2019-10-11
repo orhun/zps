@@ -33,3 +33,4 @@
 #define CLR_DEFAULT "\x1b[0m"      /* Default color and style attributes */
 #define CLR_BOLD "\x1b[1m"         /* Bold attribute */
 #define CLR_RED "\x1b[31m"         /* Color red */
+#define STAT_FORMAT "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n" /* Format of process stats to print */
