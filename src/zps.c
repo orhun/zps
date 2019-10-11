@@ -105,8 +105,7 @@ static char* readFile(char *fileName, char *format, ...) {
      */
     fd = open(fileName, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
     /* Check for file open error. */
-    if (fd == -1)
-        return NULL;
+    if (fd == -1) return NULL;
     /* Empty the content string. */
     fileContent[0] = '\0';
     /**
@@ -248,9 +247,8 @@ static int checkProcs() {
     /* Set begin time. */
     clock_t begin = clock();
     /* Print column titles. */
-    if (showProcList)
-        cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
-            "PID", "PPID", "STATE", "NAME", "COMMAND");
+    if (showProcList) cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
+        "PID", "PPID", "STATE", "NAME", "COMMAND");
     /**
      * Call ftw with the following parameters to get '/proc' contents:
      * PROC_FILESYSTEM:      '/proc' filesystem.
@@ -264,8 +262,7 @@ static int checkProcs() {
         return EXIT_FAILURE;
     }
     /* Check for termination command line argument. */
-    if (!terminate)
-        return EXIT_SUCCESS;
+    if (!terminate) return EXIT_SUCCESS;
     /**
      * Handle the defunct processes after the ftw completes.
      * Terminating a process while ftw might cause interruption.
@@ -282,8 +279,8 @@ static int checkProcs() {
         fprintf(stderr, "\n PID: %d\n PPID: %d\n State: %s\n Name: %s\n",
             defunctProcs[i].pid, defunctProcs[i].ppid,
             defunctProcs[i].state, defunctProcs[i].name);
-        if (strlen(defunctProcs[i].cmd) > 0)
-            fprintf(stderr, " Command: %s\n", defunctProcs[i].cmd);
+        if (strlen(defunctProcs[i].cmd) > 0) fprintf(stderr,
+            " Command: %s\n", defunctProcs[i].cmd);
     }
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%d defunct process(es) cleaned up in %.2fs\n",
@@ -332,8 +329,7 @@ static int parseArgs(int argc, char **argv){
  */
 int main(int argc, char *argv[]) {
     /* Parse command line arguments. */
-    if(parseArgs(argc, argv))
-        return EXIT_SUCCESS;
+    if(parseArgs(argc, argv)) return EXIT_SUCCESS;
     /* Check running processes. */
     int procsChecked = checkProcs();
     return procsChecked;
