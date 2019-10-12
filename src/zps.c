@@ -199,7 +199,8 @@ static ProcStats getProcStats(const char *procPath) {
         procStats.name, procStats.state, &procStats.ppid);
     /* Remove the parentheses around the process name. */
     procStats.name[strnlen(procStats.name, sizeof(procStats.name))-1] = '\0';
-    memmove(procStats.name, procStats.name+1, strlen(procStats.name));
+    memmove(procStats.name, procStats.name+1,
+        strnlen(procStats.name, sizeof(procStats.name)));
     /* Set the defunct process state. */
     procStats.defunct = (strstr(procStats.state, STATE_ZOMBIE) != NULL);
     /* Read the 'cmdline' file and check error. */
