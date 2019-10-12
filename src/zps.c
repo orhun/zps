@@ -40,6 +40,7 @@ static bool showProcList = true;         /* Boolean value for listing the runnin
 static char *strPath;                    /* String part of a path in '/proc' */
 static char fileContent[BLOCK_SIZE];     /* Text content of a file */
 static char match[BLOCK_SIZE/4];         /* Regex match */
+static char fileName[BLOCK_SIZE/64];     /* Name of file to read */
 static char buff;                        /* Char variable that used as buffer in read */
 static char *statContent;                /* Text content of the process' stat file */
 static char *cmdContent;                 /* Text content of the process' command file */
@@ -91,14 +92,13 @@ static int cprintf(char *color, char *format, ...) {
 /*!
  * Read the given file and return its content.
  *
- * @param  filename
  * @param  format
  * @return fileContent
  */
-static char* readFile(char *fileName, char *format, ...) {
-    /* Format the given file name with the arguments. */
+static char* readFile(char *format, ...) {
+    /* Format the file name with the arguments. */
     va_start(vargs, format);
-    vsnprintf(fileName, sizeof(vargs)+1, format, vargs);
+    vsnprintf(fileName, sizeof(fileName), format, vargs);
     va_end(vargs);
     /**
      * Open file with following flags:
@@ -190,11 +190,8 @@ static int formatStatContent(char *statContent) {
 static ProcStats getProcStats(const char *procPath) {
     /* Create a structure for storing parsed process' stats. */
     ProcStats procStats = {.state=DEFAULT_STATE};
-    /* Array for storing information about the process. */
-    char pidStatFile[strlen(procPath)+strlen(STAT_FILE)+1],
-        pidCmdFile[strlen(procPath)+strlen(CMD_FILE)+1];
     /* Read the 'status' file. */
-    statContent = readFile(pidStatFile, "%s%s", procPath, STAT_FILE);
+    statContent = readFile("%s/%s", procPath, STAT_FILE);
     /* Check file read error and fix file content. */
     if (statContent == NULL || formatStatContent(statContent)) return procStats;
     /* Parse the '/stat' file into process status struct. */
@@ -206,7 +203,7 @@ static ProcStats getProcStats(const char *procPath) {
     /* Set the defunct process state. */
     procStats.defunct = (strstr(procStats.state, STATE_ZOMBIE) != NULL);
     /* Read the 'cmdline' file and check error. */
-    cmdContent = readFile(pidCmdFile, "%s%s", procPath, CMD_FILE);
+    cmdContent = readFile("%s/%s", procPath, CMD_FILE);
     if (cmdContent == NULL) return procStats;
     /* Update the command variable in the process status struct. */
     strcpy(procStats.cmd, cmdContent);
