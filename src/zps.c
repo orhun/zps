@@ -297,7 +297,7 @@ static int checkProcs() {
         fprintf(stderr, "\n PID: %u\n PPID: %u\n State: %s\n Name: %s\n",
             defunctProcs[i].pid, defunctProcs[i].ppid,
             defunctProcs[i].state, defunctProcs[i].name);
-        if (strlen(defunctProcs[i].cmd) > 0) fprintf(stderr,
+        if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
             " Command: %s\n", defunctProcs[i].cmd);
     }
     /* Show terminated process count and taken time. */
