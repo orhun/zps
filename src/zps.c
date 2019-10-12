@@ -167,6 +167,7 @@ static int formatStatContent(char *statContent) {
                 matchLength = (int) strcspn(offsetBegin, " ");
                 /* Set the current match. */
                 sprintf(match, "%.*s", matchLength, offsetBegin);
+                if (match[strlen(match)] != '\0') match[strlen(match)] = '\0';
                 /* Next space is always the character next to the current match. */
                 offsetSpace += strlen(match) + 1;
                 /* Set the offsets for the next match. */
