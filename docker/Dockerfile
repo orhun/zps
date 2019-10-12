@@ -1,9 +1,9 @@
 # Create Alpine image for build
 FROM alpine:3.10.2 AS build-image
-# Install compiler and standard library
-RUN apk add --no-cache gcc musl-dev
 # Set locale
 ENV LC_ALL=C.UTF-8
+# Install compiler and standard library
+RUN apk add --no-cache gcc musl-dev
 # Set working directory
 WORKDIR /app/
 # Copy source files to working directory
