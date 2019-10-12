@@ -231,7 +231,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
      */
     if (ftwbuf->level != 1 || tflag != FTW_D ||
         !strtol(fpath + ftwbuf->base, &strPath, 10) ||
-        strncmp(strPath, "", strlen(strPath)+1)) {
+        strcmp(strPath, "")) {
         return EXIT_SUCCESS;
     }
     /* Get the process stats from the path. */
@@ -239,8 +239,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     /* Set process entry color to default. */
     procEntryColor = CLR_DEFAULT;
     /* Check for process' file parse error. */
-    if (!strncmp(procStats.state, DEFAULT_STATE,
-        strlen(procStats.state)+1)) {
+    if (!strcmp(procStats.state, DEFAULT_STATE)) {
         cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
         return EXIT_FAILURE;
     /* Check for the process state for being zombie. */
