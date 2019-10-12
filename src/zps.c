@@ -201,7 +201,7 @@ static ProcStats getProcStats(const char *procPath) {
     sscanf(statContent, "%u %64s %64s %u", &procStats.pid,
         procStats.name, procStats.state, &procStats.ppid);
     /* Remove the parentheses around the process name. */
-    procStats.name[strlen(procStats.name)-1] = '\0';
+    procStats.name[strnlen(procStats.name, sizeof(procStats.name))-1] = '\0';
     memmove(procStats.name, procStats.name+1, strlen(procStats.name));
     /* Set the defunct process state. */
     procStats.defunct = (strstr(procStats.state, STATE_ZOMBIE) != NULL);
