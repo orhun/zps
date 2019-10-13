@@ -35,6 +35,7 @@ static unsigned int fd;                  /* File descriptor to be used in file o
 static unsigned int defunctCount = 0;    /* Number of found defunct processes */
 static unsigned int terminatedProcs = 0; /* Number of terminated processes */
 static unsigned int procsChecked = 0;    /* Return value for the process check operation */
+static unsigned int maxFD = MAX_FD;      /* Maximum number of file descriptors to use */
 static bool terminate = false;           /* Boolean value for terminating defunct processes */
 static bool showProcList = true;         /* Boolean value for listing the running processes */
 static char *strPath;                    /* String part of a path in '/proc' */
@@ -268,11 +269,11 @@ static int checkProcs() {
      * Call ftw with the following parameters to get '/proc' contents:
      * PROC_FILESYSTEM: '/proc' filesystem.
      * procEntryRecv:   Function to call for each entry found in the tree.
-     * MAX_FD:          Maximum number of file descriptors to use.
+     * maxFD:           Maximum number of file descriptors to use.
      * FTW_PHYS:        Flag for not to follow symbolic links.
      */
     if (nftw(PROC_FILESYSTEM, procEntryRecv,
-        MAX_FD, FTW_PHYS)) {
+        maxFD, FTW_PHYS)) {
         cprintf(CLR_RED, "ftw failed.\n");
         return EXIT_FAILURE;
     }
