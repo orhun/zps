@@ -314,7 +314,7 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt_long(argc, argv, "vhcxs",
+    while ((opt = getopt_long(argc, argv, ":vhcxsf:",
         opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
@@ -336,6 +336,12 @@ static int parseArgs(int argc, char **argv){
                     close(fd);
                 }
                 break;
+            case 'f': /* Set file descriptor count.*/
+                maxFD = atoi(optarg);
+                break;
+            case ':': /* Missing argument. */
+                cprintf(CLR_RED, "Option requires an argument.\n");
+                return EXIT_FAILURE;
         }
     }
     return EXIT_SUCCESS;
