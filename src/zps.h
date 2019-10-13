@@ -20,7 +20,7 @@
 #define _XOPEN_SOURCE 700          /* POSIX.1-2008 + XSI (SuSv4) */
 #define _LARGEFILE64_SOURCE        /* Enable LFS */
 #define _FILE_OFFSET_BITS 64       /* Support 64-bit file sizes */
-#define MAX_FILE_DESCRIPTORS 15    /* Maximum number of file descriptors to use */
+#define MAX_FD 15                  /* Maximum number of file descriptors to use */
 #define PROC_FILESYSTEM "/proc"    /* '/proc' filesystem */
 #define STAT_FILE "stat"           /* PID status file */
 #define CMD_FILE "cmdline"         /* PID command file */

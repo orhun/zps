@@ -266,13 +266,13 @@ static int checkProcs() {
         "PID", "PPID", "STATE", "NAME", "COMMAND");
     /**
      * Call ftw with the following parameters to get '/proc' contents:
-     * PROC_FILESYSTEM:      '/proc' filesystem.
-     * procEntryRecv:        Function to call for each entry found in the tree.
-     * MAX_FILE_DESCRIPTORS: Maximum number of file descriptors to use.
-     * FTW_PHYS:             Flag for not to follow symbolic links.
+     * PROC_FILESYSTEM: '/proc' filesystem.
+     * procEntryRecv:   Function to call for each entry found in the tree.
+     * MAX_FD:          Maximum number of file descriptors to use.
+     * FTW_PHYS:        Flag for not to follow symbolic links.
      */
     if (nftw(PROC_FILESYSTEM, procEntryRecv,
-        MAX_FILE_DESCRIPTORS, FTW_PHYS)) {
+        MAX_FD, FTW_PHYS)) {
         cprintf(CLR_RED, "ftw failed.\n");
         return EXIT_FAILURE;
     }
