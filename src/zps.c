@@ -69,6 +69,8 @@ static struct option opts[] = { /* Long options for command line arguments  */
         NULL, 'c'},
     {"silent", no_argument,
         NULL, 's'},
+    {"fd", required_argument,
+        NULL, 'f'},
 };
 
 /*!
