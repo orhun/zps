@@ -38,7 +38,18 @@ cd src/ && gcc -O3 -Wall zps.c -o zps
 
 ## Usage
 
-### Command Line Arguments
+```
+Usage:
+  zps [options]
+
+Options:
+  -c, --clean     clean up zombie processes
+  -x, --lc        list and clean up zombie processes
+  -f, --fd <num>  set maximum file descriptors (default: 15)
+  -s, --silent    run in silent mode
+  -v, --version   show version
+  -h, --help      show help
+```
 
 ## TODO(s)
 
