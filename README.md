@@ -9,3 +9,10 @@
 [![Codecov](https://img.shields.io/codecov/c/github/orhun/zps?style=flat-square)](https://codecov.io/gh/orhun/zps)
 [![Stars](https://img.shields.io/github/stars/orhun/zps.svg?style=flat-square)](https://github.com/orhun/zps/stargazers) [![License](https://img.shields.io/github/license/orhun/zps.svg?color=blue&style=flat-square)](./LICENSE)
 
+## License
+
+GNU General Public License ([v3](https://www.gnu.org/licenses/gpl.txt))
+
+## Copyright
+
+Copyright (c) 2019, [orhun](https://www.github.com/orhun)
