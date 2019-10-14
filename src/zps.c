@@ -328,7 +328,7 @@ static int parseArgs(int argc, char **argv){
                     "    -yMMh.\n"
                     "  `oNNo:shy:`\n"
                     " .dMm:```.+dNh`\n"
-                    " .yhhhhhhhhhhh`ps v%s\n", CLR_BOLD, VERSION);
+                    " .github/orhun/zps v%s\n", CLR_BOLD, VERSION);
                 return EXIT_FAILURE;
             case 'h': /* Show help message. */
                 fprintf(stderr, "zps help\n");
