@@ -323,17 +323,26 @@ static int parseArgs(int argc, char **argv){
         opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
-                cprintf(CLR_RED,
-                    "%s -hhhhdddddd/\n"
+                cprintf(CLR_BOLD,
+                    "\n -hhhhdddddd/\n"
                     " `++++++mMN+\n"
                     "      :dMy.\n"
                     "    -yMMh.\n"
                     "  `oNNo:shy:`\n"
                     " .dMm:```.+dNh`\n"
-                    " .github/orhun/zps v%s\n", CLR_BOLD, VERSION);
+                    " .github/orhun/zps v%s\n\n", VERSION);
                 return EXIT_FAILURE;
             case 'h': /* Show help message. */
-                fprintf(stderr, "zps help\n");
+                fprintf(stderr,
+                "\nUsage:\n"
+                "  zps [options]\n\n"
+                "Options:\n"
+                "  -c, --clean     clean up zombie processes\n"
+                "  -x, --lc        list and clean up zombie processes\n"
+                "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"
+                "  -s, --silent    run in silent mode\n"
+                "  -v, --version   show version\n"
+                "  -h, --help      show help\n\n");
                 return EXIT_FAILURE;
             case 'c': /* Don't list the running processes. */
                 showProcList = false;
