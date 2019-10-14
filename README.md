@@ -15,9 +15,26 @@
 
 ### • CMake
 
+```
+mkdir -p build && cd build
+cmake ../ -DCMAKE_INSTALL_PREFIX=/usr
+make
+sudo make install
+sudo ldconfig
+```
+
 ### • Make
 
+```
+make
+sudo make install
+```
+
 ### • GCC
+
+```
+cd src/ && gcc -O3 -Wall zps.c -o zps
+```
 
 ## Usage
 
