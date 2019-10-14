@@ -1,5 +1,5 @@
 /**!
- * zps, <TODO: Add description>
+ * zps, a small utility for listing or cleaning up zombie processes.
  * Copyright (C) 2019 by orhun <https://www.github.com/orhun>
  *
  * This program is free software: you can redistribute it and/or modify
