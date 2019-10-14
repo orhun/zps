@@ -321,7 +321,14 @@ static int parseArgs(int argc, char **argv){
         opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
-                fprintf(stderr, "zps v%s\n", VERSION);
+                cprintf(CLR_RED,
+                    "%s -hhhhdddddd/\n"
+                    " `++++++mMN+\n"
+                    "      :dMy.\n"
+                    "    -yMMh.\n"
+                    "  `oNNo:shy:`\n"
+                    " .dMm:```.+dNh`\n"
+                    " .yhhhhhhhhhhh`ps v%s\n", CLR_BOLD, VERSION);
                 return EXIT_FAILURE;
             case 'h': /* Show help message. */
                 fprintf(stderr, "zps help\n");
