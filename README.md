@@ -53,6 +53,9 @@ Options:
 
 ## TODO(s)
 
+* Improve listing processes for long process names.
+* Support selecting process to terminate.
+
 ## License
 
 GNU General Public License ([v3](https://www.gnu.org/licenses/gpl.txt))
