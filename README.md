@@ -56,6 +56,20 @@ Options:
   -h, --help      show help
 ```
 
+## Docker
+
+### Building a image
+
+```
+docker build -f docker/Dockerfile -t zps .
+```
+
+### Running the image in container
+
+```
+docker run zps
+```
+
 ## TODO(s)
 
 * Improve listing processes for long process names.
