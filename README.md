@@ -1,6 +1,6 @@
 ![Logo](https://user-images.githubusercontent.com/24392180/66733887-b52b4780-ee69-11e9-86ee-ab04caf98287.png)
 
-# zps [![Release](https://img.shields.io/github/release/orhun/zps.svg?style=flat-square)](https://github.com/orhun/zps/releases)
+# zps [![Release](https://img.shields.io/github/release/orhun/zps.svg?style=flat-square)](https://github.com/orhun/zps/releases) [![AUR](https://img.shields.io/aur/version/zps.svg?style=flat-square)](https://aur.archlinux.org/packages/zps/)
 
 ### A small utility for listing or cleaning up zombie processes on GNU/Linux.
 [![Travis Build](https://img.shields.io/travis/orhun/zps.svg?style=flat-square)](https://travis-ci.org/orhun/zps)
@@ -12,6 +12,8 @@
 ## Installation
 
 ### • AUR
+* [zps](https://aur.archlinux.org/packages/zps/)
+* [zps-git](https://aur.archlinux.org/packages/zps-git/)
 
 ### • CMake
 
