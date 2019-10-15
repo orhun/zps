@@ -2,7 +2,7 @@
  * On Unix and Unix-like computer operating systems, a zombie process
  * or defunct process is a process that has completed execution but still
  * has an entry in the process table. (Wikipedia)
- * This program aims to illustrate how zombie or defunct processes are created.
+ * This program illustrates how zombie or defunct processes are created.
  * Copyright (C) 2019 by orhun <https://www.github.com/orhun>
  *
  * This program is free software: you can redistribute it and/or modify
