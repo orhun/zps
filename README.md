@@ -9,8 +9,12 @@
 [![Codecov](https://img.shields.io/codecov/c/github/orhun/zps?color=black&style=flat-square)](https://codecov.io/gh/orhun/zps)
 [![Stars](https://img.shields.io/github/stars/orhun/zps.svg?color=590000&style=flat-square)](https://github.com/orhun/zps/stargazers) [![License](https://img.shields.io/github/license/orhun/zps.svg?color=590000&style=flat-square)](./LICENSE)
 
-On Unix and Unix-like computer operating systems, a zombie process or defunct process is a process that has completed execution (via the 'exit' system call) but still has an entry in the process table. ([wiki](https://en.wikipedia.org/wiki/Zombie_process))
-
+On Unix and Unix-like computer operating systems, a zombie process or defunct process is a process that has completed execution (via the `exit` system call) but still has an entry in the process table. This occurs for child processes, where the entry is still needed to allow the parent process to read its child's exit status: once the exit status is read via the `wait` system call, the zombie's entry is removed from the process table and it is said to be "reaped". ([wiki](https://en.wikipedia.org/wiki/Zombie_process))   
+Zombie processes are not harmful since they are not affecting other processes or using any system resources. However, they do retain their process ID. This can lead to preventing new processes to launch if all the available PIDs were assigned to zombie processes. Considering Linux systems have a finite number of process IDs, it's one of the problems that zombie processes can cause. Another danger of zombie processes is that they can cause resource leaks if they stay as a zombie in the process table for a long time. Apart from these issues, having a few zombie processes won't be a big deal for the system although they might indicate a bug with their parent process.    
+[zproc.c](https://github.com/orhun/zps/blob/master/example/zproc.c) file can be compiled and run to see how zombie processes are created.
+```
+cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
+```
 
 ## Installation
 
