@@ -10,7 +10,7 @@ Version=1.0.0
 Name=zps
 
 # Application comment
-Comment=A small utility for listing or cleaning up zombie processes.
+Comment=A small utility for listing or reaping zombie processes.
 
 # The executable of the application
 Exec=zps
