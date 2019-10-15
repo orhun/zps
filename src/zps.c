@@ -65,9 +65,9 @@ static struct option opts[] = { /* Long options for command line arguments  */
         NULL, 'v'},
     {"help", no_argument,
         NULL, 'h'},
-    {"clean", no_argument,
-        NULL, 'c'},
-    {"lc", no_argument,
+    {"reap", no_argument,
+        NULL, 'r'},
+    {"xreap", no_argument,
         NULL, 'x'},
     {"silent", no_argument,
         NULL, 's'},
@@ -319,7 +319,7 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt_long(argc, argv, ":vhcxsf:",
+    while ((opt = getopt_long(argc, argv, ":vhrxsf:",
         opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
@@ -337,16 +337,16 @@ static int parseArgs(int argc, char **argv){
                 "\nUsage:\n"
                 "  zps [options]\n\n"
                 "Options:\n"
-                "  -c, --clean     clean up zombie processes\n"
-                "  -x, --lc        list and clean up zombie processes\n"
+                "  -r, --reap      reap zombie processes\n"
+                "  -x, --xreap     list and reap zombie processes\n"
                 "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"
                 "  -s, --silent    run in silent mode\n"
                 "  -v, --version   show version\n"
                 "  -h, --help      show help\n\n");
                 return EXIT_FAILURE;
-            case 'c': /* Don't list the running processes. */
+            case 'r': /* Don't list running processes. */
                 showProcList = false;
-            case 'x': /* Clean up the defunct processes. */
+            case 'x': /* Reap defunct processes. */
                 terminate = true;
                 break;
             case 's': /* Silent mode. */
