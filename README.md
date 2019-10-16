@@ -67,6 +67,13 @@ Options:
   -h, --help      show help
 ```
 
+![zps](https://user-images.githubusercontent.com/24392180/66898210-64e6ed80-f001-11e9-8e27-0ab3a7cabdca.gif)
+
+![zps -r](https://user-images.githubusercontent.com/24392180/66898345-b68f7800-f001-11e9-86d7-694772a46ab7.gif)
+
+![zps -x](https://user-images.githubusercontent.com/24392180/66898624-34ec1a00-f002-11e9-9d5a-dde84c925119.gif)
+
+
 ## Docker
 
 ### Building a image
