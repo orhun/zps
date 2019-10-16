@@ -82,6 +82,7 @@ docker run zps
 
 * Improve listing processes for long process names.
 * Support selecting process to terminate.
+* Send `SIGCHLD` signal to the parent instead of terminating it.
 
 ## License
 
