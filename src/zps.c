@@ -43,8 +43,8 @@ static char fileContent[BLOCK_SIZE];     /* Text content of a file */
 static char match[BLOCK_SIZE/4];         /* Regex match */
 static char fileName[BLOCK_SIZE/64];     /* Name of file to read */
 static char buff;                        /* Char variable that used as buffer in read */
-static char *statContent;                /* Text content of the process' stat file */
-static char *cmdContent;                 /* Text content of the process' command file */
+static char *statContent;                /* Text content of the process's stat file */
+static char *cmdContent;                 /* Text content of the process's command file */
 static char *procEntryColor;             /* Color code of process entry to print */
 typedef struct {                         /* Struct for storing process stats */
     unsigned int pid;
@@ -55,7 +55,7 @@ typedef struct {                         /* Struct for storing process stats */
     bool defunct;
 } ProcStats;
 static ProcStats
-    defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process' stats */
+    defunctProcs[BLOCK_SIZE/4]; /* Array of defunct process's stats */
 static va_list vargs;           /* List of information about variable arguments */
 static regex_t regex;           /* Regex struct */
 static regmatch_t               /* Regex match struct that contains start and end offsets */
@@ -193,7 +193,7 @@ static int formatStatContent(char *statContent) {
  * @return procStats (process stats)
  */
 static ProcStats getProcStats(const char *procPath) {
-    /* Create a structure for storing parsed process' stats. */
+    /* Create a structure for storing parsed process's stats. */
     ProcStats procStats = {.state=DEFAULT_STATE};
     /* Read the 'status' file. */
     statContent = readFile("%s/%s", procPath, STAT_FILE);
@@ -241,7 +241,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
     ProcStats procStats = getProcStats(fpath);
     /* Set process entry color to default. */
     procEntryColor = CLR_DEFAULT;
-    /* Check for process' file parse error. */
+    /* Check for process's file parse error. */
     if (!strcmp(procStats.state, DEFAULT_STATE)) {
         cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
         return EXIT_FAILURE;
@@ -251,7 +251,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         defunctProcs[defunctCount++] = procStats;
         procEntryColor = CLR_RED;
     }
-    /* Print the process' stats. */
+    /* Print the process's stats. */
     if (showProcList == true) cprintf(procEntryColor,
         "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
         procStats.ppid, procStats.state, procStats.name, procStats.cmd);
@@ -259,7 +259,7 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 }
 
 /*!
- * Check running process' states using the '/proc' filesystem.
+ * Check running process's states using the '/proc' filesystem.
  *
  * @return EXIT_status
  */
@@ -296,7 +296,7 @@ static int checkProcs() {
             cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED,
                 CLR_DEFAULT);
         }
-        /* Print defunct process' stats. */
+        /* Print defunct process's stats. */
         fprintf(stderr, "\n Name:    %s\n PID:"
             "     %u\n PPID:    %u\n State:   %s\n",
             defunctProcs[i].name, defunctProcs[i].pid,
