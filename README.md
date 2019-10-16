@@ -20,6 +20,9 @@ Zombie processes are not harmful since they are not affecting other processes or
 cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 ```
 
+`zps` aims to list the running processes at a particular time with stats and indicate the zombie processes on this list. It can also reap these zombie processes automatically if `--reap` argument is provided. There's also `--xreap` argument for reaping zombie processes after listing.    
+Technically, `zps` reads process stats from [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) filesystem and uses [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library) to handle listing, sending signals and other operations.
+
 ## Installation
 
 ### • AUR
