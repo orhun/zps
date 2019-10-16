@@ -4,7 +4,7 @@
 
 ### A small utility for listing and reaping zombie processes on GNU/Linux.
 
-![zps](https://user-images.githubusercontent.com/24392180/66910809-f2cdd300-f017-11e9-9da6-b5fa3731c06b.gif)
+![zps](https://user-images.githubusercontent.com/24392180/66898210-64e6ed80-f001-11e9-8e27-0ab3a7cabdca.gif)
 
 [![Travis Build](https://img.shields.io/travis/orhun/zps.svg?color=black&style=flat-square)](https://travis-ci.org/orhun/zps)
 [![Docker Build](https://img.shields.io/docker/cloud/build/orhunp/zps.svg?color=black&style=flat-square)](https://hub.docker.com/r/orhunp/zps/builds)
@@ -84,8 +84,6 @@ Options:
   -v, --version   show version
   -h, --help      show help
 ```
-
-![zps](https://user-images.githubusercontent.com/24392180/66898210-64e6ed80-f001-11e9-8e27-0ab3a7cabdca.gif)
 
 ### zps -r
 
