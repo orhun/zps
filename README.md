@@ -3,6 +3,9 @@
 # zps [![Release](https://img.shields.io/github/release/orhun/zps.svg?color=590000&style=flat-square)](https://github.com/orhun/zps/releases) [![AUR](https://img.shields.io/aur/version/zps.svg?color=590000&style=flat-square)](https://aur.archlinux.org/packages/zps/)
 
 ### A small utility for listing and reaping zombie processes on GNU/Linux.
+
+![zps](https://user-images.githubusercontent.com/24392180/66910809-f2cdd300-f017-11e9-9da6-b5fa3731c06b.gif)
+
 [![Travis Build](https://img.shields.io/travis/orhun/zps.svg?color=black&style=flat-square)](https://travis-ci.org/orhun/zps)
 [![Docker Build](https://img.shields.io/docker/cloud/build/orhunp/zps.svg?color=black&style=flat-square)](https://hub.docker.com/r/orhunp/zps/builds)
 [![Codacy](https://img.shields.io/codacy/grade/3d40a551806b4c788befba6d2920675b.svg?color=black&style=flat-square)](https://www.codacy.com/manual/orhun/zps?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=orhun/zps&amp;utm_campaign=Badge_Grade)
