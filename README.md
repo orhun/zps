@@ -34,6 +34,7 @@ Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/L
   * [Usage](#usage)
     + [zps -r](#zps--r)
     + [zps -x](#zps--x)
+    + [zps -l](#zps--l)
   * [Docker](#docker)
     + [Building a image](#building-a-image)
     + [Running the image in container](#running-the-image-in-container)
@@ -94,6 +95,9 @@ Options:
 
 ![zps -x](https://user-images.githubusercontent.com/24392180/66898624-34ec1a00-f002-11e9-9d5a-dde84c925119.gif)
 
+### zps -l
+
+![zps -l](https://user-images.githubusercontent.com/24392180/67200343-2770ce80-f40c-11e9-9483-1c265f87fd0a.gif)
 
 ## Docker
 
