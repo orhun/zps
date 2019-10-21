@@ -97,7 +97,7 @@ Options:
 
 ### zps -l
 
-![zps -l](https://user-images.githubusercontent.com/24392180/67201055-1628c180-f40e-11e9-840d-180fdabb349c.gif)
+![zps -l](https://user-images.githubusercontent.com/24392180/67201180-5f791100-f40e-11e9-8ff6-fcbbca443e9a.gif)
 
 ## Docker
 
