@@ -38,6 +38,7 @@ static unsigned int procsChecked = 0;    /* Return value for the process check o
 static unsigned int maxFD = MAX_FD;      /* Maximum number of file descriptors to use */
 static bool terminate = false;           /* Boolean value for terminating defunct processes */
 static bool showProcList = true;         /* Boolean value for listing the running processes */
+static bool showDefunctList = false;     /* Boolean value for listing the defunct processes only */
 static char *strPath;                    /* String part of a path in '/proc' */
 static char fileContent[BLOCK_SIZE];     /* Text content of a file */
 static char match[BLOCK_SIZE/4];         /* Regex match */
@@ -69,6 +70,8 @@ static struct option opts[] = { /* Long options for command line arguments  */
         NULL, 'r'},
     {"xreap", no_argument,
         NULL, 'x'},
+    {"list", no_argument,
+        NULL, 'l'},
     {"silent", no_argument,
         NULL, 's'},
     {"fd", required_argument,
@@ -252,9 +255,11 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         procEntryColor = CLR_RED;
     }
     /* Print the process's stats. */
-    if (showProcList == true) cprintf(procEntryColor,
-        "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n", procStats.pid,
-        procStats.ppid, procStats.state, procStats.name, procStats.cmd);
+    if (showProcList == true ||
+        (!strcmp(procEntryColor, CLR_RED) && showDefunctList == true))
+        cprintf(procEntryColor, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n",
+        procStats.pid, procStats.ppid, procStats.state,
+        procStats.name, procStats.cmd);
     return EXIT_SUCCESS;
 }
 
@@ -267,8 +272,9 @@ static int checkProcs() {
     /* Set begin time. */
     clock_t begin = clock();
     /* Print column titles. */
-    if (showProcList) cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
-        "PID", "PPID", "STATE", "NAME", "COMMAND");
+    if (showProcList || showDefunctList) cprintf(CLR_BOLD,
+        "%-6s\t%-6s\t%-2s\t%16.16s %s\n", "PID", "PPID",
+        "STATE", "NAME", "COMMAND");
     /**
      * Call ftw with the following parameters to get '/proc' contents:
      * PROC_FILESYSTEM: '/proc' filesystem.
@@ -319,7 +325,7 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt_long(argc, argv, ":vhrxsf:",
+    while ((opt = getopt_long(argc, argv, ":vhrxlsf:",
         opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
@@ -339,15 +345,19 @@ static int parseArgs(int argc, char **argv){
                 "Options:\n"
                 "  -r, --reap      reap zombie processes\n"
                 "  -x, --xreap     list and reap zombie processes\n"
+                "  -l, --list      list zombie processes only\n"
                 "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"
                 "  -s, --silent    run in silent mode\n"
                 "  -v, --version   show version\n"
                 "  -h, --help      show help\n\n");
                 return EXIT_FAILURE;
+            case 'l': /* List defunct processes only. */
+                showDefunctList = true;
+                terminate = true;
             case 'r': /* Don't list running processes. */
                 showProcList = false;
             case 'x': /* Reap defunct processes. */
-                terminate = true;
+                terminate = !terminate;
                 break;
             case 's': /* Silent mode. */
                 /* Redirect stderr to /dev/null */
