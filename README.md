@@ -112,7 +112,6 @@ docker run zps
 
 * Improve listing processes for long process names.
 * Support selecting process to terminate.
-* Add `-l, --list` option for listing zombie processes without termination.
 * Send `SIGCHLD` signal to the parent instead of terminating it.
 
 ## License
