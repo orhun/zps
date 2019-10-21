@@ -79,6 +79,7 @@ Usage:
 Options:
   -r, --reap      reap zombie processes
   -x, --xreap     list and reap zombie processes
+  -l, --list      list zombie processes only
   -f, --fd <num>  set maximum file descriptors (default: 15)
   -s, --silent    run in silent mode
   -v, --version   show version
