@@ -252,14 +252,13 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
         return EXIT_FAILURE;
     /* Check for the process state for being zombie. */
-    } else if (procStats.defunct == true) {
+    } else if (procStats.defunct) {
         /* Add process stats to the array of defunct process stats. */
         defunctProcs[defunctCount++] = procStats;
         procEntryColor = CLR_RED;
     }
     /* Print the process's stats. */
-    if (showProcList == true ||
-        (!strcmp(procEntryColor, CLR_RED) && showDefunctList == true))
+    if (showProcList || (!strcmp(procEntryColor, CLR_RED) && showDefunctList))
         cprintf(procEntryColor, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n",
         procStats.pid, procStats.ppid, procStats.state,
         procStats.name, procStats.cmd);
