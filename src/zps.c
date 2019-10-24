@@ -72,6 +72,8 @@ static struct option opts[] = { /* Long options for command line arguments  */
         NULL, 'x'},
     {"list", no_argument,
         NULL, 'l'},
+    {"prompt", no_argument,
+        NULL, 'p'},
     {"silent", no_argument,
         NULL, 's'},
     {"fd", required_argument,
@@ -325,7 +327,7 @@ static int checkProcs() {
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt_long(argc, argv, ":vhrxlsf:",
+    while ((opt = getopt_long(argc, argv, ":vhrxlpsf:",
         opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
@@ -358,6 +360,8 @@ static int parseArgs(int argc, char **argv){
                 showProcList = false;
             case 'x': /* Reap defunct processes. */
                 terminate = !terminate;
+                break;
+            case 'p': /* Show prompt for reap option. */
                 break;
             case 's': /* Silent mode. */
                 /* Redirect stderr to /dev/null */
