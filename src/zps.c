@@ -39,6 +39,7 @@ static unsigned int maxFD = MAX_FD;      /* Maximum number of file descriptors t
 static bool terminate = false;           /* Boolean value for terminating defunct processes */
 static bool showProcList = true;         /* Boolean value for listing the running processes */
 static bool showDefunctList = false;     /* Boolean value for listing the defunct processes only */
+static bool prompt = false;              /* Boolean value for showing prompt for the reaping option */
 static char *strPath;                    /* String part of a path in '/proc' */
 static char fileContent[BLOCK_SIZE];     /* Text content of a file */
 static char match[BLOCK_SIZE/4];         /* Regex match */
@@ -361,7 +362,8 @@ static int parseArgs(int argc, char **argv){
             case 'x': /* Reap defunct processes. */
                 terminate = !terminate;
                 break;
-            case 'p': /* Show prompt for reap option. */
+            case 'p': /* Show prompt for the reaping option. */
+                prompt = true;
                 break;
             case 's': /* Silent mode. */
                 /* Redirect stderr to /dev/null */
