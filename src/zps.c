@@ -32,19 +32,19 @@
 #include <ftw.h>
 
 static unsigned int fd;                  /* File descriptor to be used in file operations */
-static unsigned int defunctCount = 0;    /* Number of found defunct processes */
+static unsigned int defunctCount    = 0; /* Number of found defunct processes */
 static unsigned int terminatedProcs = 0; /* Number of terminated processes */
-static unsigned int procsChecked = 0;    /* Return value for the process check operation */
+static unsigned int procsChecked    = 0; /* Return value for the process check operation */
 static unsigned int maxFD = MAX_FD;      /* Maximum number of file descriptors to use */
-static bool terminate = false;           /* Boolean value for terminating defunct processes */
-static bool showProcList = true;         /* Boolean value for listing the running processes */
+static bool terminate       = false;     /* Boolean value for terminating defunct processes */
+static bool showProcList    = true;      /* Boolean value for listing the running processes */
 static bool showDefunctList = false;     /* Boolean value for listing the defunct processes only */
-static bool prompt = false;              /* Boolean value for showing prompt for the reaping option */
-static char *strPath;                    /* String part of a path in '/proc' */
+static bool prompt          = false;     /* Boolean value for showing prompt for the reaping option */
+static char buff;                        /* Char variable that used as buffer in read */
 static char fileContent[BLOCK_SIZE];     /* Text content of a file */
 static char match[BLOCK_SIZE/4];         /* Regex match */
 static char fileName[BLOCK_SIZE/64];     /* Name of file to read */
-static char buff;                        /* Char variable that used as buffer in read */
+static char *strPath;                    /* String part of a path in '/proc' */
 static char *statContent;                /* Text content of the process's stat file */
 static char *cmdContent;                 /* Text content of the process's command file */
 static char *procEntryColor;             /* Color code of process entry to print */
