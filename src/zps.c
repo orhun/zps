@@ -388,6 +388,7 @@ static int parseArgs(int argc, char **argv){
                 "  -r, --reap      reap zombie processes\n"
                 "  -x, --xreap     list and reap zombie processes\n"
                 "  -l, --list      list zombie processes only\n"
+                "  -p, --prompt    show prompt for selecting processes\n"
                 "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"
                 "  -s, --silent    run in silent mode\n"
                 "  -v, --version   show version\n"
