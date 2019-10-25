@@ -296,12 +296,19 @@ static int checkProcs() {
      * Terminating a process while ftw might cause interruption.
      */
     for(int i = 0; i < defunctCount; i++) {
-        /* Send termination signal to the parent of defunct process. */
-        if(!kill(defunctProcs[i].ppid, SIGTERM)) {
-            terminatedProcs++;
-            cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
+        /* Check for the prompt flag argument value. */
+        if (!prompt) {
+            /* Send termination signal to the parent of defunct process. */
+            if(!kill(defunctProcs[i].ppid, SIGTERM)) {
+                terminatedProcs++;
+                cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
+            } else {
+                cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED,
+                    CLR_DEFAULT);
+            }
         } else {
-            cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED,
+            /* Print the defunct process index. */
+            cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED, i+1,
                 CLR_DEFAULT);
         }
         /* Print defunct process's stats. */
@@ -312,6 +319,14 @@ static int checkProcs() {
         if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
             " Command: %s\n", defunctProcs[i].cmd);
     }
+
+    if (prompt) {
+        char indexes[BLOCK_SIZE/64];
+        printf("\nEnter process index(es) to proceed (e.g: 1,2): ");
+        fgets(indexes, sizeof(indexes), stdin);
+        indexes[strcspn(indexes, "\n")] = 0;
+    }
+
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%u defunct process(es) cleaned up in %.2fs\n",
         terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
