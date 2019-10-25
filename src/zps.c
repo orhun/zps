@@ -363,6 +363,7 @@ static int parseArgs(int argc, char **argv){
                 break;
             case 'p': /* Show prompt for the reaping option. */
                 prompt = true;
+                terminate = true;
                 break;
             case 's': /* Silent mode. */
                 /* Redirect stderr to /dev/null */
