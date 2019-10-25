@@ -314,15 +314,11 @@ static int checkProcs() {
      * Terminating a process while ftw might cause interruption.
      */
     for(int i = 0; i < defunctCount; i++) {
-        /* Check for the prompt flag argument value. */
-        if (!prompt) {
-            terminatedProcs = killProcByPPID(
-                defunctProcs[i].ppid, terminatedProcs);
-        } else {
-            /* Print the defunct process index. */
-            cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED, i+1,
-                CLR_DEFAULT);
-        }
+        /* Terminate the process or print process index. */
+        if (!prompt) terminatedProcs = killProcByPPID(
+            defunctProcs[i].ppid, terminatedProcs);
+        else cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED,
+            i+1, CLR_DEFAULT);
         /* Print defunct process's stats. */
         fprintf(stderr, "\n Name:    %s\n PID:"
             "     %u\n PPID:    %u\n State:   %s\n",
@@ -334,7 +330,7 @@ static int checkProcs() {
 
     if (prompt) {
         char indexPrompt[BLOCK_SIZE/64];
-        printf("\nEnter process index(es) to proceed (e.g: 1,2): ");
+        printf("\nEnter process index(es) to proceed (e.g: 1,2..5): ");
         fgets(indexPrompt, sizeof(indexPrompt), stdin);
         indexPrompt[strcspn(indexPrompt, "\n")] = 0;
 
@@ -345,9 +341,15 @@ static int checkProcs() {
         while ((token = strtok_r(indexStr, ",", &indexStr))) {
             if((index = atoi(token)) && (index > 0)
                 && (index <= defunctCount)) {
-                printf("%d\n", index);
+                terminatedProcs = killProcByPPID(
+                    defunctProcs[index-1].ppid, terminatedProcs);
+                fprintf(stderr, " -> %s (%u,%u)\n",
+                    defunctProcs[index-1].name,
+                    defunctProcs[index-1].pid,
+                    defunctProcs[index-1].ppid);
             }
         }
+
     }
 
     /* Show terminated process count and taken time. */
