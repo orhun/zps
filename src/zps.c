@@ -266,6 +266,24 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 }
 
 /*!
+ * Send termination signal to the parent of the process.
+ *
+ * @param PPID
+ * @param terminated
+ * @return terminated
+ */
+static int killProcByPPID(int PPID, int terminated) {
+    if(!kill(PPID, SIGTERM)) {
+        terminated++;
+        cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
+    } else {
+        cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED,
+            CLR_DEFAULT);
+    }
+    return terminated;
+}
+
+/*!
  * Check running process's states using the '/proc' filesystem.
  *
  * @return EXIT_status
@@ -298,14 +316,8 @@ static int checkProcs() {
     for(int i = 0; i < defunctCount; i++) {
         /* Check for the prompt flag argument value. */
         if (!prompt) {
-            /* Send termination signal to the parent of defunct process. */
-            if(!kill(defunctProcs[i].ppid, SIGTERM)) {
-                terminatedProcs++;
-                cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
-            } else {
-                cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED,
-                    CLR_DEFAULT);
-            }
+            terminatedProcs = killProcByPPID(
+                defunctProcs[i].ppid, terminatedProcs);
         } else {
             /* Print the defunct process index. */
             cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED, i+1,
