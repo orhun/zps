@@ -321,10 +321,21 @@ static int checkProcs() {
     }
 
     if (prompt) {
-        char indexes[BLOCK_SIZE/64];
+        char indexPrompt[BLOCK_SIZE/64];
         printf("\nEnter process index(es) to proceed (e.g: 1,2): ");
-        fgets(indexes, sizeof(indexes), stdin);
-        indexes[strcspn(indexes, "\n")] = 0;
+        fgets(indexPrompt, sizeof(indexPrompt), stdin);
+        indexPrompt[strcspn(indexPrompt, "\n")] = 0;
+
+        int index;
+        char* token;
+        char* indexStr = indexPrompt;
+
+        while ((token = strtok_r(indexStr, ",", &indexStr))) {
+            if((index = atoi(token)) && (index > 0)
+                && (index <= defunctCount)) {
+                printf("%d\n", index);
+            }
+        }
     }
 
     /* Show terminated process count and taken time. */
