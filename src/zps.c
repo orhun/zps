@@ -140,7 +140,7 @@ static char* readFile(char *format, ...) {
 /*!
  * Format the content of '/proc/<pid>/stat' using regex.
  *
- * @param statContent
+ * @param  statContent
  * @return EXIT_status
  */
 static int formatStatContent(char *statContent) {
@@ -195,7 +195,7 @@ static int formatStatContent(char *statContent) {
 /*!
  * Parse and return the stats from process path.
  *
- * @param procPath   (process path in '/proc')
+ * @param  procPath   (process path in '/proc')
  * @return procStats (process stats)
  */
 static ProcStats getProcStats(const char *procPath) {
@@ -226,10 +226,10 @@ static ProcStats getProcStats(const char *procPath) {
 /*!
  * Event for receiving tree entry from '/proc'.
  *
- * @param fpath  (path name of the entry)
- * @param sb     (file status structure for fpath)
- * @param tflag  (type flag of the entry)
- * @param ftwbuf (structure that contains entry base and level)
+ * @param  fpath  (path name of the entry)
+ * @param  sb     (file status structure for fpath)
+ * @param  tflag  (type flag of the entry)
+ * @param  ftwbuf (structure that contains entry base and level)
  * @return EXIT_status
  */
 static int procEntryRecv(const char *fpath, const struct stat *sb,
@@ -268,8 +268,8 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
 /*!
  * Send termination signal to the parent of the process.
  *
- * @param PPID
- * @param terminated
+ * @param  PPID
+ * @param  terminated
  * @return terminated
  */
 static int killProcByPPID(int PPID, int terminated) {
@@ -359,8 +359,8 @@ static int checkProcs() {
 /*!
  * Parse command line arguments.
  *
- * @param argc (argument count)
- * @param argv (argument vector)
+ * @param  argc (argument count)
+ * @param  argv (argument vector)
  * @return EXIT_SUCCESS
  */
 static int parseArgs(int argc, char **argv){
