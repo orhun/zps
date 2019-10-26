@@ -13,11 +13,13 @@ script:
   - cd example
   - gcc -O3 -Wall zproc.c -o z\ \proc.o
   - ./z\ proc.o &>/dev/null &
+  - ./z\ proc.o &>/dev/null &
   # Compile the main source & run
   - cd ../src/
   - gcc -fprofile-arcs -ftest-coverage -O3 -Wall zps.c -o zps
-  - ./zps -v && ./zps -h && ./zps -x && ./zps -lr
-  - ./zps -f && ./zps -r -f 20 && ./zps -s
+  - ./zps -v && ./zps -h && printf '1' | ./zps -p
+  - ./zps -x && ./zps -lr && ./zps -f
+  - ./zps -r -f 20 && ./zps -s
   # Print code coverage information
   - gcov zps.c
 # Send report to codecov

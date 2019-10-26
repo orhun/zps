@@ -32,18 +32,20 @@
 #include <ftw.h>
 
 static unsigned int fd;                  /* File descriptor to be used in file operations */
-static unsigned int defunctCount = 0;    /* Number of found defunct processes */
+static unsigned int defunctCount    = 0; /* Number of found defunct processes */
 static unsigned int terminatedProcs = 0; /* Number of terminated processes */
-static unsigned int procsChecked = 0;    /* Return value for the process check operation */
+static unsigned int procsChecked    = 0; /* Return value for the process check operation */
 static unsigned int maxFD = MAX_FD;      /* Maximum number of file descriptors to use */
-static bool terminate = false;           /* Boolean value for terminating defunct processes */
-static bool showProcList = true;         /* Boolean value for listing the running processes */
+static bool terminate       = false;     /* Boolean value for terminating defunct processes */
+static bool showProcList    = true;      /* Boolean value for listing the running processes */
 static bool showDefunctList = false;     /* Boolean value for listing the defunct processes only */
-static char *strPath;                    /* String part of a path in '/proc' */
+static bool prompt          = false;     /* Boolean value for showing prompt for the reaping option */
+static char buff;                        /* Char variable that used as buffer in read */
 static char fileContent[BLOCK_SIZE];     /* Text content of a file */
 static char match[BLOCK_SIZE/4];         /* Regex match */
 static char fileName[BLOCK_SIZE/64];     /* Name of file to read */
-static char buff;                        /* Char variable that used as buffer in read */
+static char indexPrompt[BLOCK_SIZE/64];  /* Input value for the prompt option */
+static char *strPath;                    /* String part of a path in '/proc' */
 static char *statContent;                /* Text content of the process's stat file */
 static char *cmdContent;                 /* Text content of the process's command file */
 static char *procEntryColor;             /* Color code of process entry to print */
@@ -72,6 +74,8 @@ static struct option opts[] = { /* Long options for command line arguments  */
         NULL, 'x'},
     {"list", no_argument,
         NULL, 'l'},
+    {"prompt", no_argument,
+        NULL, 'p'},
     {"silent", no_argument,
         NULL, 's'},
     {"fd", required_argument,
@@ -137,7 +141,7 @@ static char* readFile(char *format, ...) {
 /*!
  * Format the content of '/proc/<pid>/stat' using regex.
  *
- * @param statContent
+ * @param  statContent
  * @return EXIT_status
  */
 static int formatStatContent(char *statContent) {
@@ -158,8 +162,8 @@ static int formatStatContent(char *statContent) {
      */
     if ((regexec(&regex, statContent, REG_MAX_MATCH, regMatch, REG_NOTEOL))
         != REG_NOMATCH) {
-        char *offsetBegin = statContent + regMatch[1].rm_so; /* Beginning offset of first match.  */
-        char *offsetEnd   = statContent + regMatch[1].rm_eo; /* Ending offset of first match.     */
+        char *offsetBegin = statContent + regMatch[1].rm_so; /* Beginning offset of first match   */
+        char *offsetEnd   = statContent + regMatch[1].rm_eo; /* Ending offset of first match      */
         char *contentDup  = strdup(statContent);             /* Duplicate of content for changing */
         unsigned int offsetSpace = regMatch[1].rm_so - 1;    /* Offset of first space in content  */
         unsigned int matchLength = (int) strcspn(offsetBegin, " ");       /* Length of the match  */
@@ -192,7 +196,7 @@ static int formatStatContent(char *statContent) {
 /*!
  * Parse and return the stats from process path.
  *
- * @param procPath   (process path in '/proc')
+ * @param  procPath   (process path in '/proc')
  * @return procStats (process stats)
  */
 static ProcStats getProcStats(const char *procPath) {
@@ -223,10 +227,10 @@ static ProcStats getProcStats(const char *procPath) {
 /*!
  * Event for receiving tree entry from '/proc'.
  *
- * @param fpath  (path name of the entry)
- * @param sb     (file status structure for fpath)
- * @param tflag  (type flag of the entry)
- * @param ftwbuf (structure that contains entry base and level)
+ * @param  fpath  (path name of the entry)
+ * @param  sb     (file status structure for fpath)
+ * @param  tflag  (type flag of the entry)
+ * @param  ftwbuf (structure that contains entry base and level)
  * @return EXIT_status
  */
 static int procEntryRecv(const char *fpath, const struct stat *sb,
@@ -249,17 +253,66 @@ static int procEntryRecv(const char *fpath, const struct stat *sb,
         cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
         return EXIT_FAILURE;
     /* Check for the process state for being zombie. */
-    } else if (procStats.defunct == true) {
+    } else if (procStats.defunct) {
         /* Add process stats to the array of defunct process stats. */
         defunctProcs[defunctCount++] = procStats;
         procEntryColor = CLR_RED;
     }
     /* Print the process's stats. */
-    if (showProcList == true ||
-        (!strcmp(procEntryColor, CLR_RED) && showDefunctList == true))
+    if (showProcList || (!strcmp(procEntryColor, CLR_RED) && showDefunctList))
         cprintf(procEntryColor, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n",
         procStats.pid, procStats.ppid, procStats.state,
         procStats.name, procStats.cmd);
+    return EXIT_SUCCESS;
+}
+
+/*!
+ * Send termination signal to the parent of the process.
+ *
+ * @param  PPID
+ * @param  terminated
+ * @return terminated
+ */
+static int killProcByPPID(int PPID, int terminated) {
+    if(!kill(PPID, SIGTERM)) {
+        terminated++;
+        cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
+    } else {
+        cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED,
+            CLR_DEFAULT);
+    }
+    return terminated;
+}
+
+/*!
+ * Request user input if prompt argument is provided.
+ *
+ * @return EXIT_SUCCESS
+ */
+static int showPrompt() {
+    /* Print user input message and ask for input. */
+    fprintf(stderr, "\nEnter process index(es) to proceed: ");
+    fgets(indexPrompt, sizeof(indexPrompt), stdin);
+    /* Remove trailing newline character from input. */
+    indexPrompt[strcspn(indexPrompt, "\n")] = 0;
+    char* indexStr = indexPrompt; /* Duplicate the input string */
+    char* token;                  /* Current token of the string */
+    /* Split the given input by comma character. */
+    while ((token = strtok_r(indexStr, ",", &indexStr))) {
+        int index = 0;            /* Process index */
+        /* Check token for the numeric index value. */
+        if((index = atoi(token)) && (index > 0)
+            && (index <= defunctCount)) {
+            /* Send termination signal to the given process. */
+            terminatedProcs = killProcByPPID(
+                defunctProcs[index-1].ppid, terminatedProcs);
+            /* Print the process's stats. */
+            fprintf(stderr, " -> %s [%u](%u)\n",
+                defunctProcs[index-1].name,
+                defunctProcs[index-1].pid,
+                defunctProcs[index-1].ppid);
+        }
+    }
     return EXIT_SUCCESS;
 }
 
@@ -294,14 +347,11 @@ static int checkProcs() {
      * Terminating a process while ftw might cause interruption.
      */
     for(int i = 0; i < defunctCount; i++) {
-        /* Send termination signal to the parent of defunct process. */
-        if(!kill(defunctProcs[i].ppid, SIGTERM)) {
-            terminatedProcs++;
-            cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
-        } else {
-            cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED,
-                CLR_DEFAULT);
-        }
+        /* Terminate the process or print process index. */
+        if (!prompt) terminatedProcs = killProcByPPID(
+            defunctProcs[i].ppid, terminatedProcs);
+        else cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED,
+            i+1, CLR_DEFAULT);
         /* Print defunct process's stats. */
         fprintf(stderr, "\n Name:    %s\n PID:"
             "     %u\n PPID:    %u\n State:   %s\n",
@@ -310,6 +360,8 @@ static int checkProcs() {
         if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
             " Command: %s\n", defunctProcs[i].cmd);
     }
+    /* Check for prompt argument and defunct process count. */
+    if (prompt && defunctCount > 0) showPrompt();
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%u defunct process(es) cleaned up in %.2fs\n",
         terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
@@ -319,13 +371,13 @@ static int checkProcs() {
 /*!
  * Parse command line arguments.
  *
- * @param argc (argument count)
- * @param argv (argument vector)
+ * @param  argc (argument count)
+ * @param  argv (argument vector)
  * @return EXIT_SUCCESS
  */
 static int parseArgs(int argc, char **argv){
     int opt;
-    while ((opt = getopt_long(argc, argv, ":vhrxlsf:",
+    while ((opt = getopt_long(argc, argv, ":vhrxlpsf:",
         opts, NULL)) != -1) {
         switch (opt) {
             case 'v': /* Show version information. */
@@ -346,6 +398,7 @@ static int parseArgs(int argc, char **argv){
                 "  -r, --reap      reap zombie processes\n"
                 "  -x, --xreap     list and reap zombie processes\n"
                 "  -l, --list      list zombie processes only\n"
+                "  -p, --prompt    show prompt for selecting processes\n"
                 "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"
                 "  -s, --silent    run in silent mode\n"
                 "  -v, --version   show version\n"
@@ -358,6 +411,10 @@ static int parseArgs(int argc, char **argv){
                 showProcList = false;
             case 'x': /* Reap defunct processes. */
                 terminate = !terminate;
+                break;
+            case 'p': /* Show prompt for the reaping option. */
+                prompt = true;
+                terminate = true;
                 break;
             case 's': /* Silent mode. */
                 /* Redirect stderr to /dev/null */

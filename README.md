@@ -35,6 +35,7 @@ Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/L
     + [zps -r](#zps--r)
     + [zps -x](#zps--x)
     + [zps -l](#zps--l)
+    + [zps -p](#zps--p)
   * [Docker](#docker)
     + [Building a image](#building-a-image)
     + [Running the image in container](#running-the-image-in-container)
@@ -81,6 +82,7 @@ Options:
   -r, --reap      reap zombie processes
   -x, --xreap     list and reap zombie processes
   -l, --list      list zombie processes only
+  -p, --prompt    show prompt for selecting processes
   -f, --fd <num>  set maximum file descriptors (default: 15)
   -s, --silent    run in silent mode
   -v, --version   show version
@@ -98,6 +100,10 @@ Options:
 ### zps -l
 
 ![zps -l](https://user-images.githubusercontent.com/24392180/67201180-5f791100-f40e-11e9-8ff6-fcbbca443e9a.gif)
+
+### zps -p
+
+![zps -p](https://user-images.githubusercontent.com/24392180/67624534-3c999300-f83a-11e9-95e4-46c3ce586197.gif)
 
 ## Docker
 
