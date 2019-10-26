@@ -162,8 +162,8 @@ static int formatStatContent(char *statContent) {
      */
     if ((regexec(&regex, statContent, REG_MAX_MATCH, regMatch, REG_NOTEOL))
         != REG_NOMATCH) {
-        char *offsetBegin = statContent + regMatch[1].rm_so; /* Beginning offset of first match.  */
-        char *offsetEnd   = statContent + regMatch[1].rm_eo; /* Ending offset of first match.     */
+        char *offsetBegin = statContent + regMatch[1].rm_so; /* Beginning offset of first match   */
+        char *offsetEnd   = statContent + regMatch[1].rm_eo; /* Ending offset of first match      */
         char *contentDup  = strdup(statContent);             /* Duplicate of content for changing */
         unsigned int offsetSpace = regMatch[1].rm_so - 1;    /* Offset of first space in content  */
         unsigned int matchLength = (int) strcspn(offsetBegin, " ");       /* Length of the match  */
@@ -328,30 +328,31 @@ static int checkProcs() {
         if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
             " Command: %s\n", defunctProcs[i].cmd);
     }
-
+    /* Request user input if prompt argument is provided. */
     if (prompt) {
         printf("\nEnter process index(es) to proceed: ");
         fgets(indexPrompt, sizeof(indexPrompt), stdin);
+        /* Remove trailing newline character from input. */
         indexPrompt[strcspn(indexPrompt, "\n")] = 0;
-
-        int index;
-        char* token;
-        char* indexStr = indexPrompt;
-
+        char* indexStr = indexPrompt; /* Duplicate the input string */
+        char* token;                  /* Current token of the string */
+        int index;                    /* Process index */
+        /* Split the given input by comma character. */
         while ((token = strtok_r(indexStr, ",", &indexStr))) {
+            /* Check token for the numeric index value. */
             if((index = atoi(token)) && (index > 0)
                 && (index <= defunctCount)) {
+                /* Send termination signal to the given process. */
                 terminatedProcs = killProcByPPID(
                     defunctProcs[index-1].ppid, terminatedProcs);
+                /* Print the process's stats. */
                 fprintf(stderr, " -> %s (%u,%u)\n",
                     defunctProcs[index-1].name,
                     defunctProcs[index-1].pid,
                     defunctProcs[index-1].ppid);
             }
         }
-
     }
-
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%u defunct process(es) cleaned up in %.2fs\n",
         terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
