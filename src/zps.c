@@ -285,6 +285,38 @@ static int killProcByPPID(int PPID, int terminated) {
 }
 
 /*!
+ * Request user input if prompt argument is provided.
+ *
+ * @return EXIT_SUCCESS
+ */
+static int showPrompt() {
+    /* Print user input message and ask for input. */
+    fprintf(stderr, "\nEnter process index(es) to proceed: ");
+    fgets(indexPrompt, sizeof(indexPrompt), stdin);
+    /* Remove trailing newline character from input. */
+    indexPrompt[strcspn(indexPrompt, "\n")] = 0;
+    char* indexStr = indexPrompt; /* Duplicate the input string */
+    char* token;                  /* Current token of the string */
+    int index;                    /* Process index */
+    /* Split the given input by comma character. */
+    while ((token = strtok_r(indexStr, ",", &indexStr))) {
+        /* Check token for the numeric index value. */
+        if((index = atoi(token)) && (index > 0)
+            && (index <= defunctCount)) {
+            /* Send termination signal to the given process. */
+            terminatedProcs = killProcByPPID(
+                defunctProcs[index-1].ppid, terminatedProcs);
+            /* Print the process's stats. */
+            fprintf(stderr, " -> %s (%u,%u)\n",
+                defunctProcs[index-1].name,
+                defunctProcs[index-1].pid,
+                defunctProcs[index-1].ppid);
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+/*!
  * Check running process's states using the '/proc' filesystem.
  *
  * @return EXIT_status
@@ -328,31 +360,8 @@ static int checkProcs() {
         if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
             " Command: %s\n", defunctProcs[i].cmd);
     }
-    /* Request user input if prompt argument is provided. */
-    if (prompt) {
-        printf("\nEnter process index(es) to proceed: ");
-        fgets(indexPrompt, sizeof(indexPrompt), stdin);
-        /* Remove trailing newline character from input. */
-        indexPrompt[strcspn(indexPrompt, "\n")] = 0;
-        char* indexStr = indexPrompt; /* Duplicate the input string */
-        char* token;                  /* Current token of the string */
-        int index;                    /* Process index */
-        /* Split the given input by comma character. */
-        while ((token = strtok_r(indexStr, ",", &indexStr))) {
-            /* Check token for the numeric index value. */
-            if((index = atoi(token)) && (index > 0)
-                && (index <= defunctCount)) {
-                /* Send termination signal to the given process. */
-                terminatedProcs = killProcByPPID(
-                    defunctProcs[index-1].ppid, terminatedProcs);
-                /* Print the process's stats. */
-                fprintf(stderr, " -> %s (%u,%u)\n",
-                    defunctProcs[index-1].name,
-                    defunctProcs[index-1].pid,
-                    defunctProcs[index-1].ppid);
-            }
-        }
-    }
+    /* Check for prompt command line argument.  */
+    if (prompt) showPrompt();
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%u defunct process(es) cleaned up in %.2fs\n",
         terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
