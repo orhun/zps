@@ -330,7 +330,7 @@ static int checkProcs() {
     }
 
     if (prompt) {
-        printf("\nEnter process index(es) to proceed (e.g: 1,2..5): ");
+        printf("\nEnter process index(es) to proceed: ");
         fgets(indexPrompt, sizeof(indexPrompt), stdin);
         indexPrompt[strcspn(indexPrompt, "\n")] = 0;
 
