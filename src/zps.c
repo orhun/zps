@@ -44,7 +44,7 @@ static char buff;                        /* Char variable that used as buffer in
 static char fileContent[BLOCK_SIZE];     /* Text content of a file */
 static char match[BLOCK_SIZE/4];         /* Regex match */
 static char fileName[BLOCK_SIZE/64];     /* Name of file to read */
-static char indexPrompt[BLOCK_SIZE/64];
+static char indexPrompt[BLOCK_SIZE/64];  /* Input value for the prompt option */
 static char *strPath;                    /* String part of a path in '/proc' */
 static char *statContent;                /* Text content of the process's stat file */
 static char *cmdContent;                 /* Text content of the process's command file */
