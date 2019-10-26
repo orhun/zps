@@ -297,9 +297,9 @@ static int showPrompt() {
     indexPrompt[strcspn(indexPrompt, "\n")] = 0;
     char* indexStr = indexPrompt; /* Duplicate the input string */
     char* token;                  /* Current token of the string */
-    int index;                    /* Process index */
     /* Split the given input by comma character. */
     while ((token = strtok_r(indexStr, ",", &indexStr))) {
+        int index = 0;            /* Process index */
         /* Check token for the numeric index value. */
         if((index = atoi(token)) && (index > 0)
             && (index <= defunctCount)) {
