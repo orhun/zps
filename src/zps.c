@@ -292,7 +292,7 @@ static int killProcByPPID(int PPID, int terminated) {
 static int showPrompt() {
     /* Print user input message and ask for input. */
     fprintf(stderr, "\nEnter process index(es) to proceed: ");
-    (void) fgets(indexPrompt, sizeof(indexPrompt), stdin);
+    fgets(indexPrompt, sizeof(indexPrompt), stdin);
     /* Remove trailing newline character from input. */
     indexPrompt[strcspn(indexPrompt, "\n")] = 0;
     char* indexStr = indexPrompt; /* Duplicate the input string */
