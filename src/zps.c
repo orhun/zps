@@ -307,7 +307,7 @@ static int showPrompt() {
             terminatedProcs = killProcByPPID(
                 defunctProcs[index-1].ppid, terminatedProcs);
             /* Print the process's stats. */
-            fprintf(stderr, " -> %s (%u,%u)\n",
+            fprintf(stderr, " -> %s [%u](%u)\n",
                 defunctProcs[index-1].name,
                 defunctProcs[index-1].pid,
                 defunctProcs[index-1].ppid);
