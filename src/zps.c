@@ -360,8 +360,8 @@ static int checkProcs() {
         if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
             " Command: %s\n", defunctProcs[i].cmd);
     }
-    /* Check for prompt command line argument.  */
-    if (prompt) showPrompt();
+    /* Check for prompt argument and defunct process count. */
+    if (prompt && defunctCount > 0) showPrompt();
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%u defunct process(es) cleaned up in %.2fs\n",
         terminatedProcs, (double)(clock() - begin) / CLOCKS_PER_SEC);
