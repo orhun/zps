@@ -19,3 +19,5 @@ install:
 # Clean
 clean:
 	rm -rf build
+
+.PHONY: all build install clean
