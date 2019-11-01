@@ -31,7 +31,7 @@
 #include <time.h>
 #include <ftw.h>
 
-static unsigned int fd;                  /* File descriptor to be used in file operations */
+static int fd;                           /* File descriptor to be used in file operations */
 static unsigned int defunctCount    = 0; /* Number of found defunct processes */
 static unsigned int terminatedProcs = 0; /* Number of terminated processes */
 static unsigned int procsChecked    = 0; /* Return value for the process check operation */
@@ -165,8 +165,8 @@ static int formatStatContent(char *statContent) {
         char *offsetBegin = statContent + regMatch[1].rm_so; /* Beginning offset of first match   */
         char *offsetEnd   = statContent + regMatch[1].rm_eo; /* Ending offset of first match      */
         char *contentDup  = strdup(statContent);             /* Duplicate of content for changing */
-        unsigned int offsetSpace = regMatch[1].rm_so - 1;    /* Offset of first space in content  */
-        unsigned int matchLength = (int) strcspn(offsetBegin, " ");       /* Length of the match  */
+        regoff_t offsetSpace = regMatch[1].rm_so - 1;        /* Offset of first space in content  */
+        int matchLength = strcspn(offsetBegin, " ");         /* Length of the match  */
         /* Check the match length for parsing or replacing spaces. */
         if (matchLength <= (regMatch[1].rm_eo-regMatch[1].rm_so)) {
             matchLength = 0;
@@ -176,7 +176,7 @@ static int formatStatContent(char *statContent) {
                 if (offsetBegin != offsetEnd && matchLength != 0)
                     contentDup[offsetSpace] = SPACE_REPLACEMENT;
                 /* Set the match length using the space span. */
-                matchLength = (int) strcspn(offsetBegin, " ");
+                matchLength = strcspn(offsetBegin, " ");
                 /* Set the current match. */
                 sprintf(match, "%.*s", matchLength, offsetBegin);
                 /* Next space is always the character next to the current match. */
@@ -235,6 +235,7 @@ static ProcStats getProcStats(const char *procPath) {
  */
 static int procEntryRecv(const char *fpath, const struct stat *sb,
     int tflag, struct FTW *ftwbuf) {
+    (void)sb;
     /**
      * Check for depth of the fpath (1), type of the entry (directory),
      * base of the fpath (numeric value) to filter entries except PID.
@@ -299,7 +300,7 @@ static int showPrompt() {
     char* token;                  /* Current token of the string */
     /* Split the given input by comma character. */
     while ((token = strtok_r(indexStr, ",", &indexStr))) {
-        int index = 0;            /* Process index */
+        unsigned int index = 0;   /* Process index */
         /* Check token for the numeric index value. */
         if((index = atoi(token)) && (index > 0)
             && (index <= defunctCount)) {
@@ -346,7 +347,7 @@ static int checkProcs() {
      * Handle the defunct processes after the ftw completes.
      * Terminating a process while ftw might cause interruption.
      */
-    for(int i = 0; i < defunctCount; i++) {
+    for(unsigned int i = 0; i < defunctCount; i++) {
         /* Terminate the process or print process index. */
         if (!prompt) terminatedProcs = killProcByPPID(
             defunctProcs[i].ppid, terminatedProcs);
@@ -407,8 +408,10 @@ static int parseArgs(int argc, char **argv){
             case 'l': /* List defunct processes only. */
                 showDefunctList = true;
                 terminate = true;
+                break;
             case 'r': /* Don't list running processes. */
                 showProcList = false;
+                break;
             case 'x': /* Reap defunct processes. */
                 terminate = !terminate;
                 break;
