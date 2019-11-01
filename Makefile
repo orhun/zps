@@ -1,7 +1,9 @@
 # Project and compiler information
-NAME=zps
-CFLAGS=-s -O3 -Wall
-CC=gcc
+NAME := zps
+CFLAGS := -s -O3 -Wall -Wextra -pedantic
+ifeq ($(CC),)
+    CC := gcc
+endif
 all: clean build
 # Build the project
 build:
@@ -19,3 +21,5 @@ install:
 # Clean
 clean:
 	rm -rf build
+
+.PHONY: all build install clean
