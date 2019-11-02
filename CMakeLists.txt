@@ -7,6 +7,6 @@ set(TARGET "zps")
 # Add project source
 add_executable(${TARGET} src/${TARGET}.c src/${TARGET}.h)
 # Compile options
-target_compile_options(${TARGET} PRIVATE -O3 -Wall)
+target_compile_options(${TARGET} PRIVATE -s -O3 -Wall -Wextra -pedantic)
 # Install
 install(TARGETS ${TARGET} RUNTIME DESTINATION bin)
