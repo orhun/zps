@@ -16,7 +16,7 @@ script:
   - ./z\ proc.o &>/dev/null &
   # Compile the main source & run
   - cd ../src/
-  - gcc -fprofile-arcs -ftest-coverage -O3 -Wall zps.c -o zps
+  - gcc -fprofile-arcs -ftest-coverage -s -O3 -Wall -Wextra -pedantic zps.c -o zps
   - ./zps -v && ./zps -h && printf '1' | ./zps -p
   - ./zps -x && ./zps -lr && ./zps -f
   - ./zps -r -f 20 && ./zps -s
