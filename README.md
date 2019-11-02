@@ -69,7 +69,7 @@ sudo make install
 ### • GCC
 
 ```
-cd src/ && gcc -O3 -Wall zps.c -o zps
+cd src/ && gcc -s -O3 -Wall -Wextra -pedantic zps.c -o zps
 ```
 
 ## Usage
