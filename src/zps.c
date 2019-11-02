@@ -408,10 +408,10 @@ static int parseArgs(int argc, char **argv){
             case 'l': /* List defunct processes only. */
                 showDefunctList = true;
                 terminate = true;
-                break;
+                // fall through
             case 'r': /* Don't list running processes. */
                 showProcList = false;
-                break;
+                // fall through
             case 'x': /* Reap defunct processes. */
                 terminate = !terminate;
                 break;
