@@ -27,10 +27,10 @@ __zps__ aims to list the running processes at a particular time with stats and i
 Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) filesystem and uses [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library) to handle listing, sending signals and other operations.
 
   * [Installation](#installation)
-    + [• AUR](#--aur)
-    + [• CMake](#--cmake)
-    + [• Make](#--make)
-    + [• GCC](#--gcc)
+    + [• AUR](#-aur)
+    + [• CMake](#-cmake)
+    + [• Make](#-make)
+    + [• GCC](#-gcc)
   * [Usage](#usage)
     + [zps -r](#zps--r)
     + [zps -x](#zps--x)
