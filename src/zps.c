@@ -70,7 +70,7 @@ static struct option opts[] = { /* Long options for command line arguments  */
         NULL, 'h'},
     {"reap", no_argument,
         NULL, 'r'},
-    {"xreap", no_argument,
+    {"lreap", no_argument,
         NULL, 'x'},
     {"list", no_argument,
         NULL, 'l'},
@@ -397,7 +397,7 @@ static int parseArgs(int argc, char **argv){
                 "  zps [options]\n\n"
                 "Options:\n"
                 "  -r, --reap      reap zombie processes\n"
-                "  -x, --xreap     list and reap zombie processes\n"
+                "  -x, --lreap     list and reap zombie processes\n"
                 "  -l, --list      list zombie processes only\n"
                 "  -p, --prompt    show prompt for selecting processes\n"
                 "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"

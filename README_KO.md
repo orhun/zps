@@ -23,7 +23,7 @@ Unix와 컴퓨터 운영체제와 같은 Unix에서, [좀비 프로세스](https
 cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 ```
 
-특정 시간에 실행하고 있는 프로세스들의 정보의 리스트와 좀비 프로세스들을 표시하기 위해 __zps__를 만들었습니다. 이 프로그램은 `--reap` 옵션을 사용했을 때, 자동으로 좀비 프로세스들을 끌 수 있습니다. 프로세스 리스트를 나열하기 전에 좀비 프로세스를 끄는 `--xreap` 옵션도 존재합니다. 좀 더 자세한 정보를 보려면 [사용법](https://github.com/orhun/zps#usage)을 보세요.
+특정 시간에 실행하고 있는 프로세스들의 정보의 리스트와 좀비 프로세스들을 표시하기 위해 __zps__를 만들었습니다. 이 프로그램은 `--reap` 옵션을 사용했을 때, 자동으로 좀비 프로세스들을 끌 수 있습니다. 프로세스 리스트를 나열하기 전에 좀비 프로세스를 끄는 `--lreap` 옵션도 존재합니다. 좀 더 자세한 정보를 보려면 [사용법](https://github.com/orhun/zps#usage)을 보세요.
 기술적으로, __zps__는 [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) 파일 시스템에서 프로세스 정보를 얻어오고, 프로세스를 출력하고 신호를 보내고 이외의 다른 동작들을 하기 위해 [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library)를 이용합니다.
 
 
@@ -82,7 +82,7 @@ cd src/ && gcc -s -O3 -Wall -Wextra -pedantic zps.c -o zps
 
 옵션:
   -r, --reap      좀비 프로세스 종료하기
-  -x, --xreap     프로세스 리스트 나열하고, 좀비 프로세스 종료하기
+  -x, --lreap     프로세스 리스트 나열하고, 좀비 프로세스 종료하기
   -l, --list      좀비 프로세스들만 목록에 보이게 하기
   -p, --prompt    선택된 프로세스들만 Prompt 된 것을 보기
   -f, --fd <num>  파일 디스크립터 최댓값 설정하기 (기본값: 15)
