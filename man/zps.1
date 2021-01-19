@@ -1,0 +1,43 @@
+.\" Manpage for zps.
+.TH ZPS "1" "January 2021" "zps" "User Commands"
+.SH NAME
+zps \- list/reap zombie processes
+.SH SYNOPSIS
+.B zps
+[options]
+.SH DESCRIPTION
+zps lists the running processes with theirs stats and indicates/reaps the zombie processes.
+.SH OPTIONS
+.TP
+\fB\-r\fR, \fB\-\-reap\fR
+reap zombie processes
+.TP
+\fB\-x\fR, \fB\-\-lreap\fR
+list and reap zombie processes
+.TP
+\fB\-l\fR, \fB\-\-list\fR
+list zombie processes only
+.TP
+\fB\-p\fR, \fB\-\-prompt\fR
+show prompt for selecting processes
+.TP
+\fB\-f\fR, \fB\-\-fd\fR <num>
+set maximum file descriptors (default: 15)
+.TP
+\fB\-s\fR, \fB\-\-silent\fR
+run in silent mode
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show version
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show help
+.SH BUGS
+No known bugs.
+Use "Issues" page for reporting bugs: <https://github.com/orhun/zps/issues/>
+.SH AUTHOR
+Written by Orhun Parmaksız <orhunparmaksiz@gmail.com>
+.SH COPYRIGHT
+Copyright © 2019-2021 Orhun Parmaksız
+.P
+GNU General Public License v3.
