@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Create tag
 read -p "Tag: " tag
 git -c user.signingkey="B928720AEC532117" \
@@ -21,6 +23,6 @@ gh-release "v$tag" "zps-$tag".* \
     --github-repository "orhun/zps" \
 
 # Clean up
-#rm -f "zps-$tag".*
+rm -f "zps-$tag".*
 cd .. || exit
 echo "New release locked and ready (v$tag)"
