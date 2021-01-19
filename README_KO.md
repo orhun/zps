@@ -26,32 +26,30 @@ cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 특정 시간에 실행하고 있는 프로세스들의 정보의 리스트와 좀비 프로세스들을 표시하기 위해 __zps__를 만들었습니다. 이 프로그램은 `--reap` 옵션을 사용했을 때, 자동으로 좀비 프로세스들을 끌 수 있습니다. 프로세스 리스트를 나열하기 전에 좀비 프로세스를 끄는 `--lreap` 옵션도 존재합니다. 좀 더 자세한 정보를 보려면 [사용법](https://github.com/orhun/zps#usage)을 보세요.
 기술적으로, __zps__는 [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) 파일 시스템에서 프로세스 정보를 얻어오고, 프로세스를 출력하고 신호를 보내고 이외의 다른 동작들을 하기 위해 [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library)를 이용합니다.
 
-
-
-  * [설치 방법](#설치-방법)
-    + [• AUR](#-aur)
-    + [• CMake](#-cmake)
-    + [• Make](#-make)
-    + [• GCC](#-gcc)
-  * [사용법](#사용법)
-    + [zps -r](#zps--r)
-    + [zps -x](#zps--x)
-    + [zps -l](#zps--l)
-    + [zps -p](#zps--p)
-  * [Docker](#docker)
-    + [이미지 생성](#이미지-생성)
-    + [컨테이너에서 이미지 실행](#컨테이너에서-이미지-실행)
-  * [TODO(s)](#TODO-s-)
-  * [License](#license)
-  * [Copyright](#copyright)
+  - [설치 방법](#설치-방법)
+    - [AUR](#aur)
+    - [CMake](#cmake)
+    - [Make](#make)
+    - [GCC](#gcc)
+    - [Docker](#docker)
+      - [이미지 생성](#이미지-생성)
+      - [컨테이너에서 이미지 실행](#컨테이너에서-이미지-실행)
+  - [사용법](#사용법)
+    - [zps -r](#zps--r)
+    - [zps -x](#zps--x)
+    - [zps -l](#zps--l)
+    - [zps -p](#zps--p)
+  - [TODO(s)](#todos)
+  - [License](#license)
+  - [Copyright](#copyright)
 
 ## 설치 방법
 
-### • AUR
+### AUR
 * [zps](https://aur.archlinux.org/packages/zps/)
 * [zps-git](https://aur.archlinux.org/packages/zps-git/)
 
-### • CMake
+### CMake
 
 ```
 mkdir -p build && cd build
@@ -61,17 +59,31 @@ sudo make install
 sudo ldconfig
 ```
 
-### • Make
+### Make
 
 ```
 make
 sudo make install
 ```
 
-### • GCC
+### GCC
 
 ```
 cd src/ && gcc -s -O3 -Wall -Wextra -pedantic zps.c -o zps
+```
+
+### Docker
+
+#### 이미지 생성
+
+```
+docker build -f docker/Dockerfile -t zps .
+```
+
+#### 컨테이너에서 이미지 실행
+
+```
+docker run zps
 ```
 
 ## 사용법
@@ -107,20 +119,6 @@ cd src/ && gcc -s -O3 -Wall -Wextra -pedantic zps.c -o zps
 
 ![zps -p](https://user-images.githubusercontent.com/24392180/67624534-3c999300-f83a-11e9-95e4-46c3ce586197.gif)
 
-## Docker
-
-### 이미지 생성
-
-```
-docker build -f docker/Dockerfile -t zps .
-```
-
-### 컨테이너에서 이미지 실행
-
-```
-docker run zps
-```
-
 ## TODO(s)
 
 * 긴 이름을 가진 프로세스를 출력하는 것을 보완하는 것.
@@ -132,6 +130,6 @@ GNU General Public License ([v3](https://www.gnu.org/licenses/gpl.txt))
 
 ## Copyright
 
-Copyright (c) 2019-2020, [orhun](https://www.github.com/orhun)
+Copyright © 2019-2021, [Orhun Parmaksız](mailto:orhunparmaksiz@gmail.com)
 
 Translated to Korean by ahdelron.

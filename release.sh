@@ -1,16 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Create tag
-read -p "Tag: " tag
-git tag -s -a "$tag"
+read -r "Tag: " tag
+git -c user.signingkey "B928720AEC532117" \
+    tag -s -a "$tag"
 git push --tags
 
 # Create assets
 make
-cd build/
-tar czvf "zps-$tag.tar.gz" zps
-shasum -a 512 "zps-$tag.tar.gz" > "zps-$tag.sha512"
-gpg --detach-sign "zps-$tag.tar.gz" # 0xB928720AEC532117
+cd build/ || exit
+tar -czvf "zps-$tag.tar.gz" zps README.md LICENSE
+gpg --local-user "B928720AEC532117" \
+    --detach-sign "zps-$tag.tar.gz"
+shasum -a 512 "zps-$tag.tar.gz" > "zps-$tag.tar.gz.sha512"
 
 # Upload assets
 # https://github.com/buildkite/github-release
@@ -19,6 +21,6 @@ gh-release "v$tag" "zps-$tag".* \
     --github-repository "orhun/zps" \
 
 # Clean up
-rm "zps-$tag".*
-cd ..
+rm -f "zps-$tag".*
+cd .. || exit
 echo "New release locked and ready (v$tag)"

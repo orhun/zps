@@ -26,30 +26,30 @@ cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 __zps__ aims to list the running processes at a particular time with stats and indicate the zombie processes on this list. It can also reap these zombie processes automatically if `--reap` argument is provided. There's also `--lreap` argument for reaping zombie processes after listing. See [usage](https://github.com/orhun/zps#usage) for more information.    
 Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) filesystem and uses [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library) to handle listing, sending signals and other operations.
 
-  * [Installation](#installation)
-    + [• AUR](#-aur)
-    + [• CMake](#-cmake)
-    + [• Make](#-make)
-    + [• GCC](#-gcc)
-  * [Usage](#usage)
-    + [zps -r](#zps--r)
-    + [zps -x](#zps--x)
-    + [zps -l](#zps--l)
-    + [zps -p](#zps--p)
-  * [Docker](#docker)
-    + [Building a image](#building-a-image)
-    + [Running the image in container](#running-the-image-in-container)
-  * [TODO(s)](#todo-s-)
-  * [License](#license)
-  * [Copyright](#copyright)
+  - [Installation](#installation)
+    - [AUR](#aur)
+    - [CMake](#cmake)
+    - [Make](#make)
+    - [GCC](#gcc)
+    - [Docker](#docker)
+      - [Building an image](#building-an-image)
+      - [Running the image in container](#running-the-image-in-container)
+  - [Usage](#usage)
+    - [zps -r](#zps--r)
+    - [zps -x](#zps--x)
+    - [zps -l](#zps--l)
+    - [zps -p](#zps--p)
+  - [TODO(s)](#todos)
+  - [License](#license)
+  - [Copyright](#copyright)
 
 ## Installation
 
-### • AUR
+### AUR
 * [zps](https://aur.archlinux.org/packages/zps/)
 * [zps-git](https://aur.archlinux.org/packages/zps-git/)
 
-### • CMake
+### CMake
 
 ```
 mkdir -p build && cd build
@@ -59,17 +59,31 @@ sudo make install
 sudo ldconfig
 ```
 
-### • Make
+### Make
 
 ```
 make
 sudo make install
 ```
 
-### • GCC
+### GCC
 
 ```
 cd src/ && gcc -s -O3 -Wall -Wextra -pedantic zps.c -o zps
+```
+
+### Docker
+
+#### Building an image
+
+```
+docker build -f docker/Dockerfile -t zps .
+```
+
+#### Running the image in container
+
+```
+docker run zps
 ```
 
 ## Usage
@@ -105,24 +119,10 @@ Options:
 
 ![zps -p](https://user-images.githubusercontent.com/24392180/67624534-3c999300-f83a-11e9-95e4-46c3ce586197.gif)
 
-## Docker
-
-### Building a image
-
-```
-docker build -f docker/Dockerfile -t zps .
-```
-
-### Running the image in container
-
-```
-docker run zps
-```
-
 ## TODO(s)
 
 * Improve listing processes for long process names.
-* `SIGCHLD` signal to the parent instead of terminating it.
+* Send `SIGCHLD` signal to the parent instead of terminating it.
 
 ## License
 
@@ -130,4 +130,4 @@ GNU General Public License ([v3](https://www.gnu.org/licenses/gpl.txt))
 
 ## Copyright
 
-Copyright (c) 2019-2020, [orhun](https://www.github.com/orhun)
+Copyright © 2019-2021, [Orhun Parmaksız](mailto:orhunparmaksiz@gmail.com)
