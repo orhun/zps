@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Create tag
-read -pr "Tag: " tag
+read -p "Tag: " tag
 git -c user.signingkey="B928720AEC532117" \
     tag -s -a "$tag"
 git push --tags
