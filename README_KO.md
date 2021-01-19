@@ -1,6 +1,6 @@
 ![Logo](https://user-images.githubusercontent.com/24392180/66733887-b52b4780-ee69-11e9-86ee-ab04caf98287.png)
 
-# zps [![Release](https://img.shields.io/github/release/orhun/zps.svg?color=590000&style=flat-square)](https://github.com/orhun/zps/releases) [![AUR](https://img.shields.io/aur/version/zps.svg?color=590000&style=flat-square)](https://aur.archlinux.org/packages/zps/)
+# zps [![Release](https://img.shields.io/github/release/orhun/zps.svg?color=590000&style=flat-square)](https://github.com/orhun/zps/releases)
 
 ### GNU/Linux에서 좀비 프로세스를 나열하고 끄는(reaping) 작은 유틸리티성 프로그램
 
@@ -27,7 +27,7 @@ cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 기술적으로, __zps__는 [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) 파일 시스템에서 프로세스 정보를 얻어오고, 프로세스를 출력하고 신호를 보내고 이외의 다른 동작들을 하기 위해 [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library)를 이용합니다.
 
   - [설치 방법](#설치-방법)
-    - [AUR](#aur)
+    - [Arch Linux](#arch-linux)
     - [CMake](#cmake)
     - [Make](#make)
     - [GCC](#gcc)
@@ -45,9 +45,11 @@ cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 
 ## 설치 방법
 
-### AUR
-* [zps](https://aur.archlinux.org/packages/zps/)
-* [zps-git](https://aur.archlinux.org/packages/zps-git/)
+### Arch Linux
+
+```
+pacman -S zps
+```
 
 ### CMake
 

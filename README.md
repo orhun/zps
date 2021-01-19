@@ -1,6 +1,6 @@
 ![Logo](https://user-images.githubusercontent.com/24392180/66733887-b52b4780-ee69-11e9-86ee-ab04caf98287.png)
 
-# zps [![Release](https://img.shields.io/github/release/orhun/zps.svg?color=590000&style=flat-square)](https://github.com/orhun/zps/releases) [![AUR](https://img.shields.io/aur/version/zps.svg?color=590000&style=flat-square)](https://aur.archlinux.org/packages/zps/)
+# zps [![Release](https://img.shields.io/github/release/orhun/zps.svg?color=590000&style=flat-square)](https://github.com/orhun/zps/releases)
 
 ### A small utility for listing and reaping zombie processes on GNU/Linux.
 
@@ -27,7 +27,7 @@ __zps__ aims to list the running processes at a particular time with stats and i
 Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) filesystem and uses [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library) to handle listing, sending signals and other operations.
 
   - [Installation](#installation)
-    - [AUR](#aur)
+    - [Arch Linux](#arch-linux)
     - [CMake](#cmake)
     - [Make](#make)
     - [GCC](#gcc)
@@ -45,9 +45,11 @@ Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/L
 
 ## Installation
 
-### AUR
-* [zps](https://aur.archlinux.org/packages/zps/)
-* [zps-git](https://aur.archlinux.org/packages/zps-git/)
+### Arch Linux
+
+```
+pacman -S zps
+```
 
 ### CMake
 
