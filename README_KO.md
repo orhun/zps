@@ -128,7 +128,7 @@ docker run zps
 
 ## License
 
-GNU General Public License ([v3](https://www.gnu.org/licenses/gpl.txt))
+GNU General Public License v3.0 only ([GPL-3.0-only](https://www.gnu.org/licenses/gpl.txt))
 
 ## Copyright
 
