@@ -12,7 +12,7 @@ git push --tags
 make
 cd build/ || exit
 tar -czvf "zps-$tag.tar.gz" zps ../README.md \
-    ../LICENSE ../man/zps.1 ../.application/zps.desktop
+    ../LICENSE ../man/zps.1 zps.desktop
 gpg --local-user "B928720AEC532117" \
     --detach-sign "zps-$tag.tar.gz"
 shasum -a 512 "zps-$tag.tar.gz" > "zps-$tag.tar.gz.sha512"
