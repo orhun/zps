@@ -3,9 +3,6 @@
 # Type
 Type=Application
 
-# Latest version
-Version=1.2.5
-
 # The name of the application
 Name=zps
 
@@ -23,3 +20,6 @@ Terminal=true
 
 # Categories
 Categories=Utility;ConsoleOnly;Monitor;
+
+# Don't display zps in the menus
+NoDisplay=true
