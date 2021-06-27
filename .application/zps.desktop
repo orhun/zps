@@ -20,3 +20,6 @@ Terminal=true
 
 # Categories
 Categories=Utility;ConsoleOnly;Monitor;
+
+# Don't display zps in the menus
+NoDisplay=true
