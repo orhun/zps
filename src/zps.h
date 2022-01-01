@@ -1,6 +1,6 @@
 /**!
  * zps, a small utility for listing and reaping zombie processes.
- * Copyright © 2019-2021 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
+ * Copyright © 2019-2022 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
