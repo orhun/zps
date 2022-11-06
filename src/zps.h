@@ -23,7 +23,7 @@
 #define PROC_FILESYSTEM "/proc"    /* '/proc' filesystem */
 #define STAT_FILE "stat"           /* PID status file */
 #define CMD_FILE "cmdline"         /* PID command file */
-#define BLOCK_SIZE 4096            /* Fixed block size*/
+#define BLOCK_SIZE 4096            /* Fixed block size */
 #define STATE_ZOMBIE "Z"           /* Status file entry of zombie state */
 #define DEFAULT_STATE "~"          /* Default state of the process before parsing */
 #define STAT_REGEX "\\(([^)]*)\\)" /* Regex for matching the values in 'stat' file */
