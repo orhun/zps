@@ -349,7 +349,7 @@ static int checkProcs() {
      * Handle the defunct processes after the ftw completes.
      * Terminating a process while ftw might cause interruption.
      */
-    for(unsigned int i = 0; i < defunctCount; i++) {
+    for (unsigned int i = 0; i < defunctCount; i++) {
         /* Terminate the process or print process index. */
         if (!prompt) terminatedProcs = killProcByPPID(
             defunctProcs[i].ppid, terminatedProcs);
