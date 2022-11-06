@@ -121,17 +121,18 @@ static char* readFile(char *format, ...) {
     fd = open(fileName, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
     /* Check for file open error. */
     if (fd == -1) return NULL;
-    /* Empty the content string. */
-    fileContent[0] = '\0';
     /**
      * Read bytes from file descriptor into the buffer.
      * Use 'read until the end' method since it's not always possible to
      * read file knowing its size. ('/proc' has zero-length virtual files)
      * Also, check the boundaries while reading the file.
      */
-    for (int i = 0; read(fd, &buff, sizeof(buff)) != 0; i++) {
+    int i;
+    for (i = 0; i < BLOCK_SIZE - 1 && read(fd, &buff, sizeof(buff)) > 0; i++) {
         fileContent[i] = buff;
     }
+    /* End the content string. */
+    fileContent[i] = '\0';
     /* Close the file descriptor and return file content. */
     close(fd);
     return fileContent;
