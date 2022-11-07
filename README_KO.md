@@ -7,6 +7,7 @@
 ![zps](https://user-images.githubusercontent.com/24392180/66898210-64e6ed80-f001-11e9-8e27-0ab3a7cabdca.gif)
 
 [![Build](https://img.shields.io/github/workflow/status/orhun/zps/Continuous%20Integration?color=black&style=flat-square)](https://github.com/orhun/zps/actions?query=workflow%3A%22Continuous+Integration%22)
+[![Docker Build](https://img.shields.io/github/workflow/status/orhun/zps/Docker%20Automated%20Builds?color=black&style=flat-square&label=docker)](https://github.com/orhun/zps/actions?query=workflow%3A%22Docker+Automated+Builds%22)
 [![Codacy](https://img.shields.io/codacy/grade/3d40a551806b4c788befba6d2920675b.svg?color=black&style=flat-square)](https://www.codacy.com/manual/orhun/zps?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=orhun/zps&amp;utm_campaign=Badge_Grade)
 [![Codecov](https://img.shields.io/codecov/c/github/orhun/zps?color=black&style=flat-square)](https://codecov.io/gh/orhun/zps)
 [![Stars](https://img.shields.io/github/stars/orhun/zps.svg?color=590000&style=flat-square)](https://github.com/orhun/zps/stargazers) [![License](https://img.shields.io/github/license/orhun/zps.svg?color=590000&style=flat-square)](./LICENSE)
