@@ -28,6 +28,7 @@ Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/L
 
   - [Installation](#installation)
     - [Arch Linux](#arch-linux)
+    - [Fedora Linux](#fedora-linux)
     - [CMake](#cmake)
     - [Make](#make)
     - [GCC](#gcc)
@@ -49,6 +50,12 @@ Technically, __zps__ reads process stats from [/proc](https://www.tldp.org/LDP/L
 
 ```
 pacman -S zps
+```
+
+### Fedora Linux
+
+```
+dnf install zps
 ```
 
 ### CMake
