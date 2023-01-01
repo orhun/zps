@@ -3,7 +3,7 @@
  * or defunct process is a process that has completed execution but still
  * has an entry in the process table. (Wikipedia)
  * This program illustrates how zombie or defunct processes are created.
- * Copyright © 2019-2022 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
+ * Copyright © 2019-2023 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -132,6 +132,6 @@ GNU General Public License v3.0 only ([GPL-3.0-only](https://www.gnu.org/license
 
 ## Copyright
 
-Copyright © 2019-2022, [Orhun Parmaksız](mailto:orhunparmaksiz@gmail.com)
+Copyright © 2019-2023, [Orhun Parmaksız](mailto:orhunparmaksiz@gmail.com)
 
 Translated to Korean by ahdelron.
