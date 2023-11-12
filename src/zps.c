@@ -187,9 +187,10 @@ static int formatStatContent(char *statContent) {
             }
             /* Update the original file content and deallocate the memory. */
             strcpy(statContent, contentDup);
-            free(contentDup);
         }
+        free(contentDup);
     }
+    regfree(&regex);
     return EXIT_SUCCESS;
 }
 
