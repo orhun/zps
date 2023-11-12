@@ -15,6 +15,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef ZPS_H
+#define ZPS_H
+
 #define VERSION "1.2.8"            /* Version */
 #define _XOPEN_SOURCE 700          /* POSIX.1-2008 + XSI (SuSv4) */
 #define _LARGEFILE64_SOURCE        /* Enable LFS */
@@ -32,3 +35,5 @@
 #define CLR_DEFAULT "\x1b[0m"      /* Default color and style attributes */
 #define CLR_BOLD "\x1b[1m"         /* Bold attribute */
 #define CLR_RED "\x1b[31m"         /* Color red */
+
+#endif // ZPS_H
