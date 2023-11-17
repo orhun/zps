@@ -31,6 +31,8 @@ cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 
 - [설치 방법](#설치-방법)
   - [Arch Linux](#arch-linux)
+  - [Alpine Linux](#alpine-linux)
+  - [Fedora Linux](#fedora-linux)
   - [CMake](#cmake)
   - [Make](#make)
   - [GCC](#gcc)
@@ -54,6 +56,18 @@ cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 
 ```
 pacman -S zps
+```
+
+### Alpine Linux
+
+```
+apk add zps
+```
+
+### Fedora Linux
+
+```
+dnf install zps
 ```
 
 ### CMake

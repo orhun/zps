@@ -34,6 +34,7 @@ Technically, **zps** reads process stats from [/proc](https://www.tldp.org/LDP/L
 
 - [Installation](#installation)
   - [Arch Linux](#arch-linux)
+  - [Alpine Linux](#alpine-linux)
   - [Fedora Linux](#fedora-linux)
   - [CMake](#cmake)
   - [Make](#make)
@@ -60,6 +61,12 @@ Technically, **zps** reads process stats from [/proc](https://www.tldp.org/LDP/L
 
 ```
 pacman -S zps
+```
+
+### Alpine Linux
+
+```
+apk add zps
 ```
 
 ### Fedora Linux
