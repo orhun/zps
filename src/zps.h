@@ -18,7 +18,7 @@
 #ifndef ZPS_H
 #define ZPS_H
 
-#define VERSION "1.2.8"            /* Version */
+#define VERSION "1.2.9"            /* Version */
 #define _XOPEN_SOURCE 700          /* POSIX.1-2008 + XSI (SuSv4) */
 #define _LARGEFILE64_SOURCE        /* Enable LFS */
 #define _FILE_OFFSET_BITS 64       /* Support 64-bit file sizes */
