@@ -18,22 +18,51 @@
 #ifndef ZPS_H
 #define ZPS_H
 
-#define VERSION "1.2.9"            /* Version */
-#define _XOPEN_SOURCE 700          /* POSIX.1-2008 + XSI (SuSv4) */
-#define _LARGEFILE64_SOURCE        /* Enable LFS */
-#define _FILE_OFFSET_BITS 64       /* Support 64-bit file sizes */
-#define MAX_FD 15                  /* Maximum number of file descriptors to use */
-#define PROC_FILESYSTEM "/proc"    /* '/proc' filesystem */
-#define STAT_FILE "stat"           /* PID status file */
-#define CMD_FILE "cmdline"         /* PID command file */
-#define BLOCK_SIZE 4096            /* Fixed block size */
-#define STATE_ZOMBIE "Z"           /* Status file entry of zombie state */
-#define DEFAULT_STATE "~"          /* Default state of the process before parsing */
-#define STAT_REGEX "\\(([^)]*)\\)" /* Regex for matching the values in 'stat' file */
-#define REG_MAX_MATCH 8            /* Maximum number of regex matches */
-#define SPACE_REPLACEMENT '~'      /* Character for replacing the spaces in regex match */
-#define CLR_DEFAULT "\x1b[0m"      /* Default color and style attributes */
-#define CLR_BOLD "\x1b[1m"         /* Bold attribute */
-#define CLR_RED "\x1b[31m"         /* Color red */
+#include <stdbool.h>
+
+/* Version number string */
+#define VERSION "1.2.9"
+
+/* Maximum number of file descriptors to use */
+#define MAX_FD 15
+
+/* '/proc' filesystem */
+#define PROC_FILESYSTEM "/proc"
+/* PID status file */
+#define STAT_FILE "stat"
+/* PID command file */
+#define CMD_FILE "cmdline"
+
+/* Fixed block size */
+#define BLOCK_SIZE 4096
+
+/* Status file entry of zombie state */
+#define STATE_ZOMBIE "Z"
+/* Default state of the process before parsing */
+#define DEFAULT_STATE "~"
+
+/* Regex for matching the values in 'stat' file */
+#define STAT_REGEX "\\(([^)]*)\\)"
+/* Maximum number of regex matches */
+#define REG_MAX_MATCH 8
+/* Character for replacing the spaces in regex match */
+#define SPACE_REPLACEMENT '~'
+
+/* Default color and style attributes */
+#define CLR_DEFAULT "\x1b[0m"
+/* Bold attribute */
+#define CLR_BOLD "\x1b[1m"
+/* Color red */
+#define CLR_RED "\x1b[31m"
+
+/* Struct for storing process stats */
+struct proc_stats {
+    unsigned int pid;
+    unsigned int ppid;
+    char name[BLOCK_SIZE / 64];
+    char state[BLOCK_SIZE / 64];
+    char cmd[BLOCK_SIZE];
+    bool defunct;
+};
 
 #endif // ZPS_H
