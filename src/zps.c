@@ -18,9 +18,11 @@
 /* POSIX.1-2008 + XSI (SUSv4) */
 #define _XOPEN_SOURCE 700
 
+#include <ctype.h>
 #include <fcntl.h>
 #include <ftw.h>
 #include <getopt.h>
+#include <limits.h>
 #include <regex.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -34,121 +36,160 @@
 
 #include "zps.h"
 
-/* File descriptor to be used in file operations */
-static int fd;
-/* Number of found defunct processes */
-static unsigned int defunct_count = 0;
-/* Number of terminated processes */
-static unsigned int terminated_procs = 0;
-/* Maximum number of file descriptors to use */
-static unsigned int max_fd = MAX_FD;
-/* Boolean value for terminating defunct processes */
-static bool terminate = false;
-/* Boolean value for listing the running processes */
-static bool show_proc_list = true;
-/* Boolean value for listing the defunct processes only */
-static bool show_defunct_list = false;
-/* Boolean value for showing prompt for the reaping option */
-static bool prompt = false;
-/* Char variable that used as buffer in read */
-static char buff;
-/* Text content of a file */
-static char file_content[BLOCK_SIZE];
-/* Regex match */
-static char match[BLOCK_SIZE / 4];
-/* Name of file to read */
-static char file_name[BLOCK_SIZE / 64];
-/* Input value for the prompt option */
-static char index_prompt[BLOCK_SIZE / 64];
-/* String part of a path in '/proc' */
-static char *str_path;
-/* Text content of the process's stat file */
-static char *stat_content;
-/* Text content of the process's command file */
-static char *cmd_content;
-/* Color code of process entry to print */
-static char *proc_entry_color;
+static struct zps_settings settings = {
+    .max_fd = MAX_FD,
+    .terminate = false,
+    .show_proc_list = true,
+    .show_defunct_list = false,
+    .prompt = false
+};
+
+static struct zps_stats stats = {
+    .defunct_count = 0,
+    .terminated_procs = 0
+};
+
 /* Array of defunct process's stats */
 static struct proc_stats defunct_procs[BLOCK_SIZE / 4];
-/* List of information about variable arguments */
-static va_list vargs;
-/* Regex struct */
-static regex_t regex;
-/* Regex match struct that contains start and end offsets */
-static regmatch_t reg_match[REG_MAX_MATCH];
-/* Long options for command line arguments  */
-static struct option opts[] = {
-    {"version", no_argument, NULL, 'v'},
-    {"help", no_argument, NULL, 'h'},
-    {"reap", no_argument, NULL, 'r'},
-    {"lreap", no_argument, NULL, 'x'},
-    {"list", no_argument, NULL, 'l'},
-    {"prompt", no_argument, NULL, 'p'},
-    {"silent", no_argument, NULL, 's'},
-    {"fd", required_argument, NULL, 'f'},
-};
 
 /*!
  * Write colored and formatted data to stderr.
  *
  * @param color
+ * @param stream
  * @param format
  *
- * @return EXIT_SUCCESS
+ * @return void
  */
-static int cprintf(char *color, char *format, ...)
+static void cfprintf(char *color, FILE *stream, char *format, ...)
 {
+    /* List of information about variable arguments */
+    va_list vargs;
     /* Set the color. */
-    fprintf(stderr, "%s", color);
+    fprintf(stream, "%s", color);
     /* Format and print the data. */
     va_start(vargs, format);
-    vfprintf(stderr, format, vargs);
+    vfprintf(stream, format, vargs);
     va_end(vargs);
     /* Set color to the default. */
-    fprintf(stderr, "%s", CLR_DEFAULT);
-    return EXIT_SUCCESS;
+    fprintf(stream, "%s", CLR_DEFAULT);
 }
 
 /*!
- * Read the given file and return its content.
+ * Print version and exit
  *
- * @param format
- *
- * @return file_content
+ * @param status (exit status to use)
  */
-static char *read_file(char *format, ...)
+static void __attribute__((noreturn)) version_exit(int status)
 {
-    /* Format the file name with the arguments. */
-    va_start(vargs, format);
-    vsnprintf(file_name, sizeof(file_name), format, vargs);
-    va_end(vargs);
-    /**
-     * Open file with following flags:
-     * O_RDONLY: Open for reading only.
-     * S_IRUSR:  Read permission bit for the owner of the file.
-     * S_IRGRP:  Read permission bit for the group owner of the file.
-     * S_IROTH:  Read permission bit for other users.
-     */
-    fd = open(file_name, O_RDONLY, S_IRUSR | S_IRGRP | S_IROTH);
-    /* Check for file open error. */
-    if (fd == -1) {
-        return NULL;
+    cfprintf(CLR_BOLD, status ? stderr : stdout,
+             "\n -hhhhdddddd/\n"
+             " `++++++mMN+\n"
+             "      :dMy.\n"
+             "    -yMMh.\n"
+             "  `oNNo:shy:`\n"
+             " .dMm:```.+dNh`\n"
+             " .github/orhun/zps v%s\n\n", VERSION);
+    exit(status);
+}
+
+/*!
+ * Print help and exit
+ *
+ * @param status (exit status to use)
+ */
+static void __attribute__((noreturn)) help_exit(int status)
+{
+    fprintf(status ? stderr : stdout,
+            "\nUsage:\n"
+            "  zps [options]\n\n"
+            "Options:\n"
+            "  -r, --reap      reap zombie processes\n"
+            "  -x, --lreap     list and reap zombie processes\n"
+            "  -l, --list      list zombie processes only\n"
+            "  -p, --prompt    show prompt for selecting processes\n"
+            "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"
+            "  -s, --silent    run in silent mode\n"
+            "  -v, --version   show version\n"
+            "  -h, --help      show help\n\n");
+    exit(status);
+}
+
+/*!
+ * Redirect `stderr` to file `"/dev/null"`
+ *
+ * @return void
+ */
+static void silence_stderr(void)
+{
+    int fd = open("/dev/null", O_WRONLY);
+    if (fd != -1) {
+        dup2(fd, STDERR_FILENO);
+        close(fd);
     }
-    /**
-     * Read bytes from file descriptor into the buffer.
-     * Use 'read until the end' method since it's not always possible to
-     * read file knowing its size. ('/proc' has zero-length virtual files)
-     * Also, check the boundaries while reading the file.
-     */
-    int i;
-    for (i = 0; i < BLOCK_SIZE - 1 && read(fd, &buff, sizeof(buff)) > 0; i++) {
-        file_content[i] = buff;
+}
+
+/*!
+ * Parse command line arguments.
+ *
+ * @param argc     (argument count)
+ * @param argv     (argument vector)
+ * @param settings (pointer to settings struct for user-specified settings)
+ *
+ * @return void
+ */
+static void parse_args(int argc, char *argv[], struct zps_settings *settings)
+{
+    /* Long options for command line arguments  */
+    static const struct option longopts[] = {
+        {"version", no_argument, NULL, 'v'},
+        {"help", no_argument, NULL, 'h'},
+        {"reap", no_argument, NULL, 'r'},
+        {"lreap", no_argument, NULL, 'x'},
+        {"list", no_argument, NULL, 'l'},
+        {"prompt", no_argument, NULL, 'p'},
+        {"silent", no_argument, NULL, 's'},
+        {"fd", required_argument, NULL, 'f'},
+        {NULL, 0, NULL, 0}
+    };
+
+    int opt;
+    while ((opt = getopt_long(argc, argv, ":vhrxlpsf:",
+            longopts, NULL)) != -1) {
+        switch (opt) {
+        case 'v': /* Show version information. */
+            version_exit(EXIT_SUCCESS);
+        case 'h': /* Show help message. */
+            help_exit(EXIT_SUCCESS);
+        case 'l': /* List defunct processes only. */
+            settings->show_defunct_list = true;
+            settings->terminate = true;
+            // fall through
+        case 'r': /* Don't list running processes. */
+            settings->show_proc_list = false;
+            // fall through
+        case 'x': /* Reap defunct processes. */
+            settings->terminate = !settings->terminate;
+            break;
+        case 'p': /* Show prompt for the reaping option. */
+            settings->prompt = true;
+            settings->terminate = true;
+            break;
+        case 's': /* Silent mode. */
+            /* Redirect stderr to /dev/null */
+            silence_stderr();
+            break;
+        case 'f': /* Set file descriptor count. */
+            settings->max_fd = atoi(optarg);
+            break;
+        case ':': /* Missing argument. */
+            cfprintf(CLR_RED, stderr, "Option requires an argument.\n");
+            exit(EXIT_FAILURE);
+        case '?': /* Unknown option. */
+            cfprintf(CLR_RED, stderr, "Unknown option.\n");
+            exit(EXIT_FAILURE);
+        }
     }
-    /* End the content string. */
-    file_content[i] = '\0';
-    /* Close the file descriptor and return file content. */
-    close(fd);
-    return file_content;
 }
 
 /*!
@@ -160,6 +201,12 @@ static char *read_file(char *format, ...)
  */
 static int format_stat_content(char *stat_content)
 {
+    /* Regex match */
+    char match[BLOCK_SIZE / 4] = {0};
+    /* Regex struct */
+    regex_t regex;
+    /* Regex match struct that contains start and end offsets */
+    regmatch_t reg_match[REG_MAX_MATCH];
     /**
      * Some of the processes contain spaces in their name so
      * parsing stats with sscanf fails on those cases.
@@ -193,7 +240,7 @@ static int format_stat_content(char *stat_content)
         if (match_length <= (reg_match[1].rm_eo - reg_match[1].rm_so)) {
             match_length = 0;
             /* Loop through the matches using offsets. */
-            while(offset_begin < offset_end) {
+            while (offset_begin < offset_end) {
                 /* Change the space character if the space is inside the parentheses. */
                 if (offset_begin != offset_end && match_length != 0) {
                     content_dup[offset_space] = SPACE_REPLACEMENT;
@@ -218,6 +265,38 @@ static int format_stat_content(char *stat_content)
 }
 
 /*!
+ * Read the given file and return its content.
+ *
+ * @param buf
+ * @param bufsiz
+ * @param format
+ *
+ * @return file_content
+ */
+static char *read_file(char *buf, size_t bufsiz, char *format, ...)
+{
+    /* List of information about variable arguments */
+    va_list vargs;
+    /* Name of file to read */
+    char path[PATH_MAX] = {0};
+    /* Format the file name with the arguments. */
+    va_start(vargs, format);
+    vsnprintf(path, sizeof(path), format, vargs);
+    va_end(vargs);
+
+    int fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        return NULL;
+    }
+
+    memset(buf, '\0', bufsiz);
+    ssize_t read_rc = read(fd, buf, bufsiz - 1);
+
+    close(fd);
+    return read_rc > 0 ? buf : NULL;
+}
+
+/*!
  * Parse and return the stats from process path.
  *
  * @param proc_path (process path in '/proc')
@@ -226,25 +305,27 @@ static int format_stat_content(char *stat_content)
  */
 static struct proc_stats get_proc_stats(const char *proc_path)
 {
+    char buf[BLOCK_SIZE] = {0};
+    char *stat_content, *cmd_content;
     /* Create a structure for storing parsed process's stats. */
     struct proc_stats proc_stats = {.state = DEFAULT_STATE};
     /* Read the 'status' file. */
-    stat_content = read_file("%s/%s", proc_path, STAT_FILE);
+
+    stat_content = read_file(buf, sizeof(buf), "%s/%s", proc_path, STAT_FILE);
     /* Check file read error and fix file content. */
     if (!stat_content || format_stat_content(stat_content)) {
         return proc_stats;
     }
     /* Parse the '/stat' file into process status struct. */
-    sscanf(stat_content, "%u %64s %64s %u", &proc_stats.pid,
-           proc_stats.name, proc_stats.state, &proc_stats.ppid);
+    sscanf(stat_content, "%d %64s %c %d", &proc_stats.pid,
+           proc_stats.name, &proc_stats.state, &proc_stats.ppid);
     /* Remove the parentheses around the process name. */
     proc_stats.name[strnlen(proc_stats.name, sizeof(proc_stats.name)) - 1] = '\0';
     memmove(proc_stats.name, proc_stats.name + 1,
             strnlen(proc_stats.name, sizeof(proc_stats.name)));
-    /* Set the defunct process state. */
-    proc_stats.defunct = (strstr(proc_stats.state, STATE_ZOMBIE) != NULL);
     /* Read the 'cmdline' file and check error. */
-    cmd_content = read_file("%s/%s", proc_path, CMD_FILE);
+    memset(buf, '\0', sizeof(buf));
+    cmd_content = read_file(buf, sizeof(buf), "%s/%s", proc_path, CMD_FILE);
     if (!cmd_content) {
         return proc_stats;
     }
@@ -268,34 +349,32 @@ static int proc_entry_recv(const char *fpath, const struct stat *sb,
                            int tflag, struct FTW *ftwbuf)
 {
     (void)sb;
+
     /**
      * Check for depth of the fpath (1), type of the entry (directory),
      * base of the fpath (numeric value) to filter entries except PID.
      */
     if (ftwbuf->level != 1 || tflag != FTW_D ||
-            !strtol(fpath + ftwbuf->base, &str_path, 10) ||
-            strcmp(str_path, "")) {
+            !isdigit(*(fpath + ftwbuf->base))) {
         return EXIT_SUCCESS;
     }
     /* Get the process stats from the path. */
     struct proc_stats proc_stats = get_proc_stats(fpath);
-    /* Set process entry color to default. */
-    proc_entry_color = CLR_DEFAULT;
     /* Check for process's file parse error. */
-    if (!strcmp(proc_stats.state, DEFAULT_STATE)) {
-        cprintf(CLR_RED, "Failed to parse \"%s\".\n", fpath);
+    if (proc_stats.state == DEFAULT_STATE) {
+        cfprintf(CLR_RED, stderr, "Failed to parse \"%s\".\n", fpath);
         return EXIT_FAILURE;
-    } else if (proc_stats.defunct) { /* Check for zombie. */
+    } else if (proc_stats.state == STATE_ZOMBIE) { /* Check for zombie. */
         /* Add process stats to the array of defunct process stats. */
-        defunct_procs[defunct_count++] = proc_stats;
-        proc_entry_color = CLR_RED;
+        defunct_procs[stats.defunct_count++] = proc_stats;
     }
     /* Print the process's stats. */
-    if (show_proc_list ||
-            (!strcmp(proc_entry_color, CLR_RED) && show_defunct_list)) {
-        cprintf(proc_entry_color, "%-6d\t%-6d\t%-2s\t%16.16s %.64s\n",
-                proc_stats.pid, proc_stats.ppid, proc_stats.state,
-                proc_stats.name, proc_stats.cmd);
+    if (settings.show_proc_list ||
+            (proc_stats.state == STATE_ZOMBIE && settings.show_defunct_list)) {
+        cfprintf(proc_stats.state == STATE_ZOMBIE ? CLR_RED : CLR_DEFAULT,
+                 stderr, "%-7d\t%-7d\t%-c\t%16.16s %.64s\n",
+                 proc_stats.pid, proc_stats.ppid, proc_stats.state,
+                 proc_stats.name, proc_stats.cmd);
     }
     return EXIT_SUCCESS;
 }
@@ -303,33 +382,38 @@ static int proc_entry_recv(const char *fpath, const struct stat *sb,
 /*!
  * Send termination signal to the parent of the process.
  *
- * @param ppid
- * @param terminated
+ * @param      ppid
+ * @param[out] stats (function updates the `terminated` field accordingly)
  *
- * @return terminated
+ * @return void
  */
-static int kill_proc_by_ppid(int ppid, int terminated)
+static void kill_proc_by_ppid(pid_t ppid, struct zps_stats *stats)
 {
     if (!kill(ppid, SIGTERM)) {
-        terminated++;
-        cprintf(CLR_BOLD, "\n[%sTerminated%s]", CLR_RED, CLR_DEFAULT);
+        stats->terminated_procs++;
+        cfprintf(CLR_BOLD, stderr, "\n[%sTerminated%s]",
+                 CLR_RED, CLR_DEFAULT);
     } else {
-        cprintf(CLR_BOLD, "\n[%sFailed to terminate%s]", CLR_RED, CLR_DEFAULT);
+        cfprintf(CLR_BOLD, stderr, "\n[%sFailed to terminate%s]",
+                 CLR_RED, CLR_DEFAULT);
     }
-    return terminated;
 }
 
 /*!
  * Request user input if prompt argument is provided.
  *
- * @return EXIT_status
+ * @param stats (pointer to zombie stats)
+ *
+ * @return void
  */
-static int show_prompt()
+static void prompt_to_kill(struct zps_stats *stats)
 {
+    /* Input value for the prompt option */
+    char index_prompt[BLOCK_SIZE] = {0};
     /* Print user input message and ask for input. */
     fprintf(stderr, "\nEnter process index(es) to proceed: ");
     if (!fgets(index_prompt, sizeof(index_prompt), stdin)) {
-        return EXIT_FAILURE;
+        return;
     }
     /* Remove trailing newline character from input. */
     index_prompt[strcspn(index_prompt, "\n")] = '\0';
@@ -340,36 +424,37 @@ static int show_prompt()
     /* Split the given input by comma character. */
     while ((token = strtok_r(index_str, ",", &index_str))) {
         /* Process index */
-        unsigned int index = 0;
+        size_t index = 0;
         /* Check token for the numeric index value. */
-        if ((index = atoi(token)) && (index > 0)
-                && (index <= defunct_count)) {
+        if (sscanf(token, "%zu", &index) == 1 &&
+                (index > 0) && (index <= stats->defunct_count)) {
             /* Send termination signal to the given process. */
-            terminated_procs = kill_proc_by_ppid(defunct_procs[index - 1].ppid,
-                                                 terminated_procs);
+            kill_proc_by_ppid(defunct_procs[index - 1].ppid, stats);
             /* Print the process's stats. */
-            fprintf(stderr, " -> %s [%u](%u)\n",
+            fprintf(stderr, " -> %s [%d](%d)\n",
                     defunct_procs[index - 1].name,
                     defunct_procs[index - 1].pid,
                     defunct_procs[index - 1].ppid);
         }
     }
-    return EXIT_SUCCESS;
 }
 
 /*!
  * Check running process's states using the '/proc' filesystem.
  *
+ * @param settings (pointer to user-specified settings)
+ * @param stats    (pointer to zombie stats)
+ *
  * @return EXIT_status
  */
-static int check_procs()
+static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
 {
     /* Set begin time. */
     clock_t begin = clock();
     /* Print column titles. */
-    if (show_proc_list || show_defunct_list) {
-        cprintf(CLR_BOLD, "%-6s\t%-6s\t%-2s\t%16.16s %s\n",
-                "PID", "PPID", "STATE", "NAME", "COMMAND");
+    if (settings->show_proc_list || settings->show_defunct_list) {
+        cfprintf(CLR_BOLD, stderr, "%-7s\t%-7s\t%-5s\t%16.16s %s\n",
+                 "PID", "PPID", "STATE", "NAME", "COMMAND");
     }
     /**
      * Call ftw with the following parameters to get '/proc' contents:
@@ -378,30 +463,29 @@ static int check_procs()
      * max_fd:          Maximum number of file descriptors to use.
      * FTW_PHYS:        Flag for not to follow symbolic links.
      */
-    if (nftw(PROC_FILESYSTEM, proc_entry_recv, max_fd, FTW_PHYS)) {
-        cprintf(CLR_RED, "ftw failed.\n");
+    if (nftw(PROC_FILESYSTEM, proc_entry_recv, settings->max_fd, FTW_PHYS)) {
+        cfprintf(CLR_RED, stderr, "ftw failed.\n");
         return EXIT_FAILURE;
     }
     /* Check for termination command line argument. */
-    if (!terminate) {
+    if (!settings->terminate) {
         return EXIT_SUCCESS;
     }
     /**
      * Handle the defunct processes after the ftw completes.
      * Terminating a process while ftw might cause interruption.
      */
-    for (unsigned int i = 0; i < defunct_count; i++) {
+    for (size_t i = 0; i < stats->defunct_count; i++) {
         /* Terminate the process or print process index. */
-        if (!prompt) {
-            terminated_procs = kill_proc_by_ppid(defunct_procs[i].ppid,
-                                                 terminated_procs);
+        if (!settings->prompt) {
+            kill_proc_by_ppid(defunct_procs[i].ppid, stats);
         }
         else {
-            cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED, i + 1, CLR_DEFAULT);
+            cfprintf(CLR_BOLD, stderr, "\n[%s%zu%s]", CLR_RED, i + 1, CLR_DEFAULT);
         }
         /* Print defunct process's stats. */
         fprintf(stderr,
-                "\n Name:    %s\n PID:     %u\n PPID:    %u\n State:   %s\n",
+                "\n Name:    %s\n PID:     %d\n PPID:    %d\n State:   %c\n",
                 defunct_procs[i].name, defunct_procs[i].pid,
                 defunct_procs[i].ppid, defunct_procs[i].state);
         if (strcmp(defunct_procs[i].cmd, "")) {
@@ -409,84 +493,14 @@ static int check_procs()
         }
     }
     /* Check for prompt argument and defunct process count. */
-    if (prompt && defunct_count > 0) {
-        show_prompt();
+    if (settings->prompt && stats->defunct_count) {
+        prompt_to_kill(stats);
     }
     /* Show terminated process count and taken time. */
-    fprintf(stderr, "\n%u defunct process(es) cleaned up in %.2fs\n",
-            terminated_procs, (double)(clock() - begin) / CLOCKS_PER_SEC);
+    fprintf(stderr, "\n%zu defunct process(es) cleaned up in %.2fs\n",
+            stats->terminated_procs,
+            (double)(clock() - begin) / CLOCKS_PER_SEC);
 
-    return EXIT_SUCCESS;
-}
-
-/*!
- * Parse command line arguments.
- *
- * @param argc (argument count)
- * @param argv (argument vector)
- *
- * @return EXIT_SUCCESS
- */
-static int parse_args(int argc, char **argv)
-{
-    int opt;
-    while ((opt = getopt_long(argc, argv, ":vhrxlpsf:",
-            opts, NULL)) != -1) {
-        switch (opt) {
-        case 'v': /* Show version information. */
-            cprintf(CLR_BOLD,
-                "\n -hhhhdddddd/\n"
-                " `++++++mMN+\n"
-                "      :dMy.\n"
-                "    -yMMh.\n"
-                "  `oNNo:shy:`\n"
-                " .dMm:```.+dNh`\n"
-                " .github/orhun/zps v%s\n\n", VERSION);
-            return EXIT_FAILURE;
-        case 'h': /* Show help message. */
-            fprintf(stderr,
-            "\nUsage:\n"
-            "  zps [options]\n\n"
-            "Options:\n"
-            "  -r, --reap      reap zombie processes\n"
-            "  -x, --lreap     list and reap zombie processes\n"
-            "  -l, --list      list zombie processes only\n"
-            "  -p, --prompt    show prompt for selecting processes\n"
-            "  -f, --fd <num>  set maximum file descriptors (default: 15)\n"
-            "  -s, --silent    run in silent mode\n"
-            "  -v, --version   show version\n"
-            "  -h, --help      show help\n\n");
-            return EXIT_FAILURE;
-        case 'l': /* List defunct processes only. */
-            show_defunct_list = true;
-            terminate = true;
-            // fall through
-        case 'r': /* Don't list running processes. */
-            show_proc_list = false;
-            // fall through
-        case 'x': /* Reap defunct processes. */
-            terminate = !terminate;
-            break;
-        case 'p': /* Show prompt for the reaping option. */
-            prompt = true;
-            terminate = true;
-            break;
-        case 's': /* Silent mode. */
-            /* Redirect stderr to /dev/null */
-            fd = open("/dev/null", O_WRONLY);
-            if (fd != -1) {
-                dup2(fd, 2);
-                close(fd);
-            }
-            break;
-        case 'f': /* Set file descriptor count.*/
-            max_fd = atoi(optarg);
-            break;
-        case ':': /* Missing argument. */
-            cprintf(CLR_RED, "Option requires an argument.\n");
-            return EXIT_FAILURE;
-        }
-    }
     return EXIT_SUCCESS;
 }
 
@@ -496,9 +510,7 @@ static int parse_args(int argc, char **argv)
 int main(int argc, char *argv[])
 {
     /* Parse command line arguments. */
-    if (parse_args(argc, argv)) {
-        return EXIT_SUCCESS;
-    }
+    parse_args(argc, argv, &settings);
     /* Check running processes. */
-    return check_procs();
+    return check_procs(&settings, &stats);
 }

@@ -18,6 +18,7 @@
 #ifndef ZPS_H
 #define ZPS_H
 
+#include <signal.h>
 #include <stdbool.h>
 
 /* Version number string */
@@ -37,9 +38,9 @@
 #define BLOCK_SIZE 4096
 
 /* Status file entry of zombie state */
-#define STATE_ZOMBIE "Z"
+#define STATE_ZOMBIE 'Z'
 /* Default state of the process before parsing */
-#define DEFAULT_STATE "~"
+#define DEFAULT_STATE '~'
 
 /* Regex for matching the values in 'stat' file */
 #define STAT_REGEX "\\(([^)]*)\\)"
@@ -57,12 +58,34 @@
 
 /* Struct for storing process stats */
 struct proc_stats {
-    unsigned int pid;
-    unsigned int ppid;
+    pid_t pid;
+    pid_t ppid;
     char name[BLOCK_SIZE / 64];
-    char state[BLOCK_SIZE / 64];
+    char state;
     char cmd[BLOCK_SIZE];
     bool defunct;
+};
+
+/* Struct for keeping track of the `zps` CLI options */
+struct zps_settings {
+    /* Maximum number of file descriptors to use */
+    unsigned int max_fd;
+    /* Boolean value for terminating defunct processes */
+    bool terminate;
+    /* Boolean value for listing the running processes */
+    bool show_proc_list;
+    /* Boolean value for listing the defunct processes only */
+    bool show_defunct_list;
+    /* Boolean value for showing prompt for the reaping option */
+    bool prompt;
+};
+
+/* Struct for keeping track of the zombies */
+struct zps_stats {
+    /* Number of found defunct processes */
+    size_t defunct_count;
+    /* Number of terminated processes */
+    size_t terminated_procs;
 };
 
 #endif // ZPS_H
