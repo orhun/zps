@@ -49,12 +49,24 @@
 /* Character for replacing the spaces in regex match */
 #define SPACE_REPLACEMENT '~'
 
-/* Default color and style attributes */
-#define CLR_DEFAULT "\x1b[0m"
-/* Bold attribute */
-#define CLR_BOLD "\x1b[1m"
-/* Color red */
-#define CLR_RED "\x1b[31m"
+/* Enum for relevant ANSI SGR display modes */
+enum ansi_display_mode_code {
+    ANSI_DISPLAY_MODE_NORMAL = 0,
+    ANSI_DISPLAY_MODE_BOLD   = 1
+};
+
+/* Enum for the different standard ANSI SGR color options */
+enum ansi_fg_color_code {
+    ANSI_FG_NORMAL  = 0,
+    ANSI_FG_BLACK   = 30,
+    ANSI_FG_RED     = 31,
+    ANSI_FG_GREEN   = 32,
+    ANSI_FG_YELLOW  = 33,
+    ANSI_FG_BLUE    = 34,
+    ANSI_FG_MAGENTA = 35,
+    ANSI_FG_CYAN    = 36,
+    ANSI_FG_WHITE   = 37
+};
 
 /* Struct for storing process stats */
 struct proc_stats {
@@ -84,8 +96,8 @@ struct zps_settings {
 struct zps_stats {
     /* Number of found defunct processes */
     size_t defunct_count;
-    /* Number of terminated processes */
-    size_t terminated_procs;
+    /* Number of signaled processes */
+    size_t signaled_procs;
 };
 
 #endif // ZPS_H

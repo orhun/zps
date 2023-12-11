@@ -46,43 +46,112 @@ static struct zps_settings settings = {
 
 static struct zps_stats stats = {
     .defunct_count = 0,
-    .terminated_procs = 0
+    .signaled_procs = 0
 };
 
 /* Array of defunct process's stats */
 static struct proc_stats defunct_procs[BLOCK_SIZE / 4];
 
 /*!
- * Write colored and formatted data to stderr.
+ * Write colored and formatted text to the specified stream.
  *
- * @param color
- * @param stream
- * @param format
+ * Resets the display attributes before returning
+ *
+ * @param[in]  color  ANSI SGR control sequence parameter n (color code)
+ * @param[out] stream Pointer to the file to write to
+ * @param[in]  format Format string specifying the text to print
+ * @param[in]  ...    Variable format string arguments
  *
  * @return void
  */
-static void cfprintf(char *color, FILE *stream, char *format, ...)
+static void cfprintf(enum ansi_fg_color_code color,
+                     FILE *stream, const char *format, ...)
 {
     /* List of information about variable arguments */
     va_list vargs;
     /* Set the color. */
-    fprintf(stream, "%s", color);
+    fprintf(stream, "\x1b[%dm", color);
     /* Format and print the data. */
     va_start(vargs, format);
     vfprintf(stream, format, vargs);
     va_end(vargs);
-    /* Set color to the default. */
-    fprintf(stream, "%s", CLR_DEFAULT);
+    /* Reset display. */
+    fprintf(stream, "\x1b[%dm", ANSI_FG_NORMAL);
+}
+
+/*!
+ * Write bold, colored and formatted text to the specified stream.
+ *
+ * Resets the display attributes before returning
+ *
+ * @param[in]  color  ANSI SGR control sequence parameter n (color code)
+ * @param[out] stream Pointer to the file to write to
+ * @param[in]  format Format string specifying the text to print
+ * @param[in]  ...    Variable format string arguments
+ *
+ * @return void
+ */
+static void cbfprintf(enum ansi_fg_color_code color,
+                      FILE *stream, const char *format, ...)
+{
+    /* List of information about variable arguments */
+    va_list vargs;
+    /* Set bold display mode. */
+    fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_BOLD);
+    if (color) {
+        /* Set the color. */
+        fprintf(stream, "\x1b[%dm", color);
+    }
+    /* Format and print the data. */
+    va_start(vargs, format);
+    vfprintf(stream, format, vargs);
+    va_end(vargs);
+    /* Reset display. */
+    fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_NORMAL);
+}
+
+/*!
+ * Write bold, colored and formatted text to the specified stream.
+ *
+ * Encloses the bold and colored text.
+ *
+ * @param[in]  color  ANSI SGR control sequence parameter n (color code)
+ * @param[in]  before String to put before the colored content
+ * @param[in]  after  String to put after the colored content
+ * @param[out] stream Pointer to the file to write to
+ * @param[in]  format Format string specifying the text to print
+ * @param[in]  ...    Variable format string arguments
+ *
+ * @return void
+ */
+static void cbfprintf_enclosed(enum ansi_fg_color_code color,
+                               const char *before, const char *after,
+                               FILE *stream, const char *format, ...)
+{
+    /* List of information about variable arguments */
+    va_list vargs;
+    /* Set the color. */
+    fprintf(stream, "%s\x1b[%dm", before, ANSI_DISPLAY_MODE_BOLD);
+    if (color) {
+        /* Set the color. */
+        fprintf(stream, "\x1b[%dm", color);
+    }
+    /* Format and print the data. */
+    va_start(vargs, format);
+    vfprintf(stream, format, vargs);
+    va_end(vargs);
+    /* Reset display. */
+    fprintf(stream, "\x1b[%dm%s", ANSI_DISPLAY_MODE_NORMAL, after);
 }
 
 /*!
  * Print version and exit
  *
- * @param status (exit status to use)
+ * @param[in] status (exit status to use)
  */
 static void __attribute__((noreturn)) version_exit(int status)
 {
-    cfprintf(CLR_BOLD, status ? stderr : stdout,
+    cbfprintf(ANSI_FG_NORMAL, status ? stderr : stdout,
              "\n -hhhhdddddd/\n"
              " `++++++mMN+\n"
              "      :dMy.\n"
@@ -96,7 +165,7 @@ static void __attribute__((noreturn)) version_exit(int status)
 /*!
  * Print help and exit
  *
- * @param status (exit status to use)
+ * @param[in] status (exit status to use)
  */
 static void __attribute__((noreturn)) help_exit(int status)
 {
@@ -176,28 +245,60 @@ static void parse_args(int argc, char *argv[], struct zps_settings *settings)
             settings->terminate = true;
             break;
         case 's': /* Silent mode. */
-            /* Redirect stderr to /dev/null */
             silence_stderr();
             break;
         case 'f': /* Set file descriptor count. */
             settings->max_fd = atoi(optarg);
             break;
         case ':': /* Missing argument. */
-            cfprintf(CLR_RED, stderr, "Option requires an argument.\n");
+            cfprintf(ANSI_FG_RED, stderr, "Option requires an argument.\n");
             exit(EXIT_FAILURE);
         case '?': /* Unknown option. */
-            cfprintf(CLR_RED, stderr, "Unknown option.\n");
+            cfprintf(ANSI_FG_RED, stderr, "Unknown option.\n");
             exit(EXIT_FAILURE);
         }
     }
 }
 
 /*!
- * Format the content of '/proc/<pid>/stat' using regex.
+ * Read the given file and return its content.
+ *
+ * @param[in,out] buf    Buffer to read bytes from the file into
+ * @param[in]     bufsiz Size of allocated `buf`
+ * @param[in]     format Format string specifying the file path
+ * @param[in]     ...    Variable format string arguments
+ *
+ * @return `buf` if bytes were successfully read, `NULL` otherwise
+ */
+static char *read_file(char *buf, size_t bufsiz, char *format, ...)
+{
+    /* List of information about variable arguments */
+    va_list vargs;
+    /* Name of file to read */
+    char path[PATH_MAX] = {0};
+    /* Format the file name with the arguments. */
+    va_start(vargs, format);
+    vsnprintf(path, sizeof(path), format, vargs);
+    va_end(vargs);
+
+    int fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        return NULL;
+    }
+
+    memset(buf, '\0', bufsiz);
+    ssize_t read_rc = read(fd, buf, bufsiz - 1);
+
+    close(fd);
+    return read_rc > 0 ? buf : NULL;
+}
+
+/*!
+ * Format the content of `"/proc/<pid>/stat"` using regex.
  *
  * @param stat_content
  *
- * @return EXIT_status
+ * @return -1 on error, otherwise 0 is returned
  */
 static int format_stat_content(char *stat_content)
 {
@@ -214,15 +315,15 @@ static int format_stat_content(char *stat_content)
      * Compile the regex and check error.
      */
     if (regcomp(&regex, STAT_REGEX, REG_EXTENDED) != 0) {
-        return EXIT_FAILURE;
+        return -1;
     }
     /**
      * Match the content with regex pattern using the following arguments:
      * regex:         Regex struct to execute.
-     * stat_content:  Content of '/proc/<pid>/stat'.
+     * stat_content:  Content of `"/proc/<pid>/stat"`.
      * REG_MAX_MATCH: Maximum number of regex matches.
      * reg_match:     Regex matches.
-     * REG_NOTEOL:    Flag for not matching 'match-end-of-line' operator.
+     * REG_NOTEOL:    Flag for not matching "match-end-of-line" operator.
      */
     if (regexec(&regex, stat_content, REG_MAX_MATCH, reg_match, REG_NOTEOL)
             != REG_NOMATCH) {
@@ -261,45 +362,13 @@ static int format_stat_content(char *stat_content)
         free(content_dup);
     }
     regfree(&regex);
-    return EXIT_SUCCESS;
-}
-
-/*!
- * Read the given file and return its content.
- *
- * @param buf
- * @param bufsiz
- * @param format
- *
- * @return file_content
- */
-static char *read_file(char *buf, size_t bufsiz, char *format, ...)
-{
-    /* List of information about variable arguments */
-    va_list vargs;
-    /* Name of file to read */
-    char path[PATH_MAX] = {0};
-    /* Format the file name with the arguments. */
-    va_start(vargs, format);
-    vsnprintf(path, sizeof(path), format, vargs);
-    va_end(vargs);
-
-    int fd = open(path, O_RDONLY);
-    if (fd == -1) {
-        return NULL;
-    }
-
-    memset(buf, '\0', bufsiz);
-    ssize_t read_rc = read(fd, buf, bufsiz - 1);
-
-    close(fd);
-    return read_rc > 0 ? buf : NULL;
+    return 0;
 }
 
 /*!
  * Parse and return the stats from process path.
  *
- * @param proc_path (process path in '/proc')
+ * @param proc_path (process path in `"/proc"`)
  *
  * @return proc_stats (process stats)
  */
@@ -309,21 +378,21 @@ static struct proc_stats get_proc_stats(const char *proc_path)
     char *stat_content, *cmd_content;
     /* Create a structure for storing parsed process's stats. */
     struct proc_stats proc_stats = {.state = DEFAULT_STATE};
-    /* Read the 'status' file. */
+    /* Read the process status file. */
 
     stat_content = read_file(buf, sizeof(buf), "%s/%s", proc_path, STAT_FILE);
     /* Check file read error and fix file content. */
     if (!stat_content || format_stat_content(stat_content)) {
         return proc_stats;
     }
-    /* Parse the '/stat' file into process status struct. */
+    /* Parse the `"/stat"` file into process status struct. */
     sscanf(stat_content, "%d %64s %c %d", &proc_stats.pid,
            proc_stats.name, &proc_stats.state, &proc_stats.ppid);
     /* Remove the parentheses around the process name. */
     proc_stats.name[strnlen(proc_stats.name, sizeof(proc_stats.name)) - 1] = '\0';
     memmove(proc_stats.name, proc_stats.name + 1,
             strnlen(proc_stats.name, sizeof(proc_stats.name)));
-    /* Read the 'cmdline' file and check error. */
+    /* Read the `"cmdline"` file and check error. */
     memset(buf, '\0', sizeof(buf));
     cmd_content = read_file(buf, sizeof(buf), "%s/%s", proc_path, CMD_FILE);
     if (!cmd_content) {
@@ -336,7 +405,7 @@ static struct proc_stats get_proc_stats(const char *proc_path)
 }
 
 /*!
- * Event for receiving tree entry from '/proc'.
+ * Event for receiving tree entry from `"/proc"`.
  *
  * @param fpath  (path name of the entry)
  * @param sb     (file status structure for fpath)
@@ -362,7 +431,7 @@ static int proc_entry_recv(const char *fpath, const struct stat *sb,
     struct proc_stats proc_stats = get_proc_stats(fpath);
     /* Check for process's file parse error. */
     if (proc_stats.state == DEFAULT_STATE) {
-        cfprintf(CLR_RED, stderr, "Failed to parse \"%s\".\n", fpath);
+        cfprintf(ANSI_FG_RED, stderr, "Failed to parse \"%s\".\n", fpath);
         return EXIT_FAILURE;
     } else if (proc_stats.state == STATE_ZOMBIE) { /* Check for zombie. */
         /* Add process stats to the array of defunct process stats. */
@@ -371,7 +440,8 @@ static int proc_entry_recv(const char *fpath, const struct stat *sb,
     /* Print the process's stats. */
     if (settings.show_proc_list ||
             (proc_stats.state == STATE_ZOMBIE && settings.show_defunct_list)) {
-        cfprintf(proc_stats.state == STATE_ZOMBIE ? CLR_RED : CLR_DEFAULT,
+        cfprintf(proc_stats.state == STATE_ZOMBIE ? ANSI_FG_RED
+                                                  : ANSI_FG_NORMAL,
                  stderr, "%-7d\t%-7d\t%-c\t%16.16s %.64s\n",
                  proc_stats.pid, proc_stats.ppid, proc_stats.state,
                  proc_stats.name, proc_stats.cmd);
@@ -385,18 +455,15 @@ static int proc_entry_recv(const char *fpath, const struct stat *sb,
  * @param      ppid
  * @param[out] stats (function updates the `terminated` field accordingly)
  *
- * @return void
+ * @return -1 on error, otherwise 0 is returned
  */
-static void kill_proc_by_ppid(pid_t ppid, struct zps_stats *stats)
+static int kill_proc_by_ppid(pid_t ppid, struct zps_stats *stats)
 {
-    if (!kill(ppid, SIGTERM)) {
-        stats->terminated_procs++;
-        cfprintf(CLR_BOLD, stderr, "\n[%sTerminated%s]",
-                 CLR_RED, CLR_DEFAULT);
-    } else {
-        cfprintf(CLR_BOLD, stderr, "\n[%sFailed to terminate%s]",
-                 CLR_RED, CLR_DEFAULT);
+    int kill_rc = kill(ppid, SIGTERM);
+    if (!kill_rc) {
+        stats->signaled_procs++;
     }
+    return kill_rc;
 }
 
 /*!
@@ -440,7 +507,7 @@ static void prompt_to_kill(struct zps_stats *stats)
 }
 
 /*!
- * Check running process's states using the '/proc' filesystem.
+ * Check running process's states using the `"/proc"` filesystem.
  *
  * @param settings (pointer to user-specified settings)
  * @param stats    (pointer to zombie stats)
@@ -453,18 +520,18 @@ static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
     clock_t begin = clock();
     /* Print column titles. */
     if (settings->show_proc_list || settings->show_defunct_list) {
-        cfprintf(CLR_BOLD, stderr, "%-7s\t%-7s\t%-5s\t%16.16s %s\n",
+        cbfprintf(ANSI_FG_NORMAL, stderr, "%-7s\t%-7s\t%-5s\t%16.16s %s\n",
                  "PID", "PPID", "STATE", "NAME", "COMMAND");
     }
     /**
-     * Call ftw with the following parameters to get '/proc' contents:
-     * PROC_FILESYSTEM: '/proc' filesystem.
+     * Call ftw with the following parameters to get `"/proc"` contents:
+     * PROC_FILESYSTEM: `"/proc"` filesystem.
      * proc_entry_recv: Function to call for each entry found in the tree.
      * max_fd:          Maximum number of file descriptors to use.
      * FTW_PHYS:        Flag for not to follow symbolic links.
      */
     if (nftw(PROC_FILESYSTEM, proc_entry_recv, settings->max_fd, FTW_PHYS)) {
-        cfprintf(CLR_RED, stderr, "ftw failed.\n");
+        cfprintf(ANSI_FG_RED, stderr, "ftw failed.\n");
         return EXIT_FAILURE;
     }
     /* Check for termination command line argument. */
@@ -478,10 +545,13 @@ static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
     for (size_t i = 0; i < stats->defunct_count; i++) {
         /* Terminate the process or print process index. */
         if (!settings->prompt) {
-            kill_proc_by_ppid(defunct_procs[i].ppid, stats);
+            int kill_rc = kill_proc_by_ppid(defunct_procs[i].ppid, stats);
+            cbfprintf_enclosed(ANSI_FG_RED, "\n[", "]", stderr,
+                               kill_rc ? "Failed to terminate" : "Terminated");
         }
         else {
-            cfprintf(CLR_BOLD, stderr, "\n[%s%zu%s]", CLR_RED, i + 1, CLR_DEFAULT);
+            cbfprintf_enclosed(ANSI_FG_RED, "\n[", "]", stderr,
+                               "%zu", i + 1);
         }
         /* Print defunct process's stats. */
         fprintf(stderr,
@@ -498,7 +568,7 @@ static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
     }
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%zu defunct process(es) cleaned up in %.2fs\n",
-            stats->terminated_procs,
+            stats->signaled_procs,
             (double)(clock() - begin) / CLOCKS_PER_SEC);
 
     return EXIT_SUCCESS;
