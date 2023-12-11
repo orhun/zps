@@ -516,8 +516,10 @@ static void prompt_to_kill(struct zps_stats *stats)
  */
 static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
 {
-    /* Set begin time. */
-    clock_t begin = clock();
+    struct timespec start = {0}, end = {0};
+    /* First time measurement */
+    clock_gettime(CLOCK_REALTIME, &start);
+
     /* Print column titles. */
     if (settings->show_proc_list || settings->show_defunct_list) {
         cbfprintf(ANSI_FG_NORMAL, stderr, "%-7s\t%-7s\t%-5s\t%16.16s %s\n",
@@ -566,10 +568,14 @@ static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
     if (settings->prompt && stats->defunct_count) {
         prompt_to_kill(stats);
     }
+
+    /* Second time measurement */
+    clock_gettime(CLOCK_REALTIME, &end);
+    const double duration = (end.tv_sec - start.tv_sec) +
+                            (end.tv_nsec - start.tv_nsec) * 1e-9;
     /* Show terminated process count and taken time. */
     fprintf(stderr, "\n%zu defunct process(es) cleaned up in %.2fs\n",
-            stats->signaled_procs,
-            (double)(clock() - begin) / CLOCKS_PER_SEC);
+            stats->signaled_procs, duration);
 
     return EXIT_SUCCESS;
 }
