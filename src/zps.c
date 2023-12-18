@@ -389,6 +389,33 @@ static int get_proc_stats(const char *pid, struct proc_stats *proc_stats)
 }
 
 /*!
+ * Helper to get the string abbreviation of signal constants
+ *
+ * @param[in] sig Signal number to get the string representation of
+ *
+ * @return String representing the signal constant (abbreviated)
+ */
+const char *sig_abbrev(int sig)
+{
+    const char *const abbrevs[NSIG] = {
+        [SIGHUP] = "HUP",       [SIGINT] = "INT",     [SIGQUIT] = "QUIT",
+        [SIGILL] = "ILL",       [SIGTRAP] = "TRAP",   [SIGABRT] = "ABRT",
+        [SIGFPE] = "FPE",       [SIGKILL] = "KILL",   [SIGBUS] = "BUS",
+        [SIGSYS] = "SYS",       [SIGSEGV] = "SEGV",   [SIGPIPE] = "PIPE",
+        [SIGALRM] = "ALRM",     [SIGTERM] = "TERM",   [SIGURG] = "URG",
+        [SIGSTOP] = "STOP",     [SIGTSTP] = "TSTP",   [SIGCONT] = "CONT",
+        [SIGCHLD] = "CHLD",     [SIGTTIN] = "TTIN",   [SIGTTOU] = "TTOU",
+        [SIGPOLL] = "POLL",     [SIGXCPU] = "XCPU",   [SIGXFSZ] = "XFSZ",
+        [SIGVTALRM] = "VTALRM", [SIGPROF] = "PROF",   [SIGUSR1] = "USR1",
+        [SIGUSR2] = "USR2",     [SIGWINCH] = "WINCH",
+    };
+    if (sig < 0 || !((size_t)sig < sizeof(abbrevs))) {
+        return NULL;
+    }
+    return abbrevs[sig];
+}
+
+/*!
  * Send signal to the given PPID of the `proc_stats` entry.
  *
  * @param[in]  proc_stats Pointer to the entry to send the signal for
@@ -413,7 +440,7 @@ static int handle_zombie(const struct proc_stats *proc_stats,
     const int kill_rc = kill(ppid, sig);
     if (!kill_rc) {
         ++stats->signaled_procs;
-        const char *sigabbrev = sigabbrev_np(sig);
+        const char *sigabbrev = sig_abbrev(sig);
         if (verbose) {
             cbfprintf_enclosed(ANSI_FG_RED, "\n[", "]", stdout, "SIG%s",
                                sigabbrev ? sigabbrev : "Unknown signal");
