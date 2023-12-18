@@ -480,9 +480,6 @@ static void handle_found_zombies(const struct proc_vec *defunct_procs,
         fprintf(stdout,
                 "\n Name:    %s\n PID:     %d\n PPID:    %d\n State:   %c\n",
                 entry->name, entry->pid, entry->ppid, entry->state);
-        if (entry->cmd[0]) {
-            fprintf(stdout, " Command: %s\n", entry->cmd);
-        }
     }
 }
 
