@@ -118,7 +118,6 @@ docker run zps
   -x, --lreap     프로세스 리스트 나열하고, 좀비 프로세스 종료하기
   -l, --list      좀비 프로세스들만 목록에 보이게 하기
   -p, --prompt    선택된 프로세스들만 Prompt 된 것을 보기
-  -f, --fd <num>  파일 디스크립터 최댓값 설정하기 (기본값: 15)
   -s, --silent    silent 모드로 실행하기
   -v, --version   버전 보기
   -h, --help      사용법 보기
