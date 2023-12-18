@@ -21,6 +21,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -351,7 +352,7 @@ static int parse_stat_content(char *stat_buf, struct proc_stats *proc_stats)
  */
 static int get_proc_stats(const char *pid, struct proc_stats *proc_stats)
 {
-    char stat_buf[BLOCK_SIZE] = {0};
+    char stat_buf[MAX_BUF_SIZE] = {0};
 
     if (!pid || !proc_stats) {
         return -1;
@@ -526,7 +527,7 @@ static void prompt_user(const struct proc_vec *defunct_procs,
                         const struct zps_settings *settings,
                         struct zps_stats *stats)
 {
-    char index_prompt[BLOCK_SIZE] = {0};
+    char index_prompt[MAX_BUF_SIZE] = {0};
 
     if (!defunct_procs || !settings || !stats) {
         return;

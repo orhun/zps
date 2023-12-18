@@ -51,8 +51,8 @@
 /* PID command file */
 #define CMD_FILE "cmdline"
 
-/* Fixed block size */
-#define BLOCK_SIZE 4096
+/* Fixed buffer size */
+#define MAX_BUF_SIZE 4096
 
 /* Status file entry of zombie state */
 #define STATE_ZOMBIE 'Z'
