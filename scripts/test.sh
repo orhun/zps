@@ -13,7 +13,7 @@ cd "${project_dir}/src"
 gcc -fprofile-arcs -ftest-coverage -s -O3 -Wall -Wextra -pedantic zps.c -o zps
 ./zps -v && ./zps -h && printf '1' | ./zps -p
 ./zps -x && ./zps -lr && ./zps -f
-./zps -r -f 20 && ./zps -s
+./zps -r && ./zps -s
 # Print code coverage information
 gcov zps.c
 # Send report to codecov
