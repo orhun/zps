@@ -397,7 +397,7 @@ static int get_proc_stats(const char *pid, struct proc_stats *proc_stats)
  */
 const char *sig_abbrev(int sig)
 {
-    const char *const abbrevs[NSIG] = {
+    static const char *const abbrevs[NSIG] = {
         [SIGHUP] = "HUP",       [SIGINT] = "INT",     [SIGQUIT] = "QUIT",
         [SIGILL] = "ILL",       [SIGTRAP] = "TRAP",   [SIGABRT] = "ABRT",
         [SIGFPE] = "FPE",       [SIGKILL] = "KILL",   [SIGBUS] = "BUS",
