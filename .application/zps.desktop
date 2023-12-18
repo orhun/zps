@@ -1,25 +1,9 @@
 [Desktop Entry]
-
-# Type
 Type=Application
-
-# The name of the application
 Name=zps
-
-# Application comment
 Comment=A small utility for listing and reaping zombie processes.
-
-# The executable of the application
 Exec=zps
-
-# Name of the icon
 Icon=utilities-system-monitor
-
-# Run in terminal
 Terminal=true
-
-# Categories
-Categories=Utility;ConsoleOnly;Monitor;
-
-# Don't display zps in the menus
+Categories=System;Monitor;ConsoleOnly;
 NoDisplay=true
