@@ -19,4 +19,4 @@ gcov zps.c
 # Send report to codecov
 [ "$UPLOAD" == 'true' ] && bash <(curl -s https://codecov.io/bash)
 # Cleanup
-rm -v zps zps.c.* zps.gc* stdlib.h.gcov
+rm -v zps zps.c.* zps.gc*
