@@ -179,7 +179,7 @@ static void silence(FILE *stream)
     if (!stream) {
         return;
     }
-    int fd = open("/dev/null", O_WRONLY);
+    const int fd = open("/dev/null", O_WRONLY);
     if (fd != -1) {
         dup2(fd, fileno(stream));
         close(fd);
@@ -271,7 +271,7 @@ static ssize_t read_file(char *buf, size_t bufsiz, const char *format, ...)
     vsnprintf(path, sizeof(path), format, vargs);
     va_end(vargs);
 
-    int fd = open(path, O_RDONLY);
+    const int fd = open(path, O_RDONLY);
     if (fd == -1) {
         return -1;
     }
@@ -304,17 +304,16 @@ static int parse_stat_content(char *stat_buf, struct proc_stats *proc_stats)
     }
 
     /* Pointer bounds for `comm` in the buffer */
-    char *begin = strchr(stat_buf, '(');
+    const char *begin = strchr(stat_buf, '(');
     if (!begin) {
         return -1;
     }
-    char *end = strrchr(begin, ')');
+    char *const end = strrchr(begin, ')');
     if (!end || end[1] == '\0') {
         return -1;
     }
-    *end = '\0';
     ++begin;
-    char *last_fields = end + 2;
+    const char *const last_fields = end + 2;
     /*
         begin:
             %d (...) %c %d
@@ -333,7 +332,8 @@ static int parse_stat_content(char *stat_buf, struct proc_stats *proc_stats)
     }
 
     /* Limit `comm_strlen` */
-    size_t comm_strlen = strnlen(begin, sizeof(proc_stats->name) - 1);
+    *end                     = '\0';
+    const size_t comm_strlen = strnlen(begin, sizeof(proc_stats->name) - 1);
     /* Extract the process name (limited by `comm_strlen`) */
     memcpy(proc_stats->name, begin, comm_strlen);
     /* Make sure string ends here */
@@ -372,8 +372,9 @@ static int get_proc_stats(const char *pid, struct proc_stats *proc_stats)
     }
 
     /* Read the `"/proc/<pid>/cmdline"` file */
-    ssize_t cmd_len = read_file(proc_stats->cmd, sizeof(proc_stats->cmd),
-                                "%s/%s/%s", PROC_FILESYSTEM, pid, CMD_FILE);
+    const ssize_t cmd_len = read_file(proc_stats->cmd, sizeof(proc_stats->cmd),
+                                      "%s/%s/%s", PROC_FILESYSTEM, pid,
+                                      CMD_FILE);
     if (cmd_len == -1) {
         return -1;
     }
@@ -505,8 +506,7 @@ static void proc_iter(struct proc_vec *defunct_procs,
     }
 
     for (;;) {
-        struct dirent *d;
-        d = readdir(dir);
+        struct dirent *d = readdir(dir);
         if (d == NULL) {
             break;
         }
