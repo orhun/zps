@@ -441,7 +441,7 @@ static int handle_zombie(const struct proc_stats *proc_stats,
     const int kill_rc = kill(ppid, sig);
     if (!kill_rc) {
         ++stats->signaled_procs;
-        const char *sigabbrev = sig_abbrev(sig);
+        const char *const sigabbrev = sig_abbrev(sig);
         if (verbose) {
             cbfprintf_enclosed(ANSI_FG_RED, "\n[", "]", stdout, "SIG%s",
                                sigabbrev ? sigabbrev : "Unknown signal");
@@ -471,7 +471,7 @@ static void handle_found_zombies(const struct proc_vec *defunct_procs,
         return;
     }
     for (size_t i = 0, sz = proc_vec_size(defunct_procs); i < sz; ++i) {
-        const struct proc_stats *entry = proc_vec_at(defunct_procs, i);
+        const struct proc_stats *const entry = proc_vec_at(defunct_procs, i);
         if (!settings->prompt) {
             handle_zombie(entry, settings, stats, true);
         } else {
@@ -604,7 +604,7 @@ static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
     if (!settings || !stats) {
         return -1;
     }
-    struct proc_vec *defunct_procs = proc_vec();
+    struct proc_vec *const defunct_procs = proc_vec();
     if (!defunct_procs) {
         return -1;
     }
@@ -652,7 +652,7 @@ int main(int argc, char *argv[])
         silence(stdout);
         silence(stderr);
     }
-    int rc = check_procs(&settings, &stats);
+    const int rc = check_procs(&settings, &stats);
     clock_gettime(CLOCK_REALTIME, &end);
 
     const double duration_ms = (end.tv_sec - start.tv_sec) * 1e3 +
