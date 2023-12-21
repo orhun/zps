@@ -35,15 +35,14 @@
 
 /* Maximum length of userland process names (incl. '\0') */
 #define TASK_COMM_LEN 16
-/* We will truncate the cmdline string */
+/* We will truncate the cmdline string (incl. '\0') */
 #define CMD_MAX_LEN 32
 
 /* Formatting widths for our columns */
-#define PID_COL_WIDTH     10
-#define PPID_COL_WIDTH    PID_COL_WIDTH
-#define STATE_COL_WIDTH   5
-#define NAME_COL_WIDTH    (TASK_COMM_LEN - 1)
-#define COMMAND_COL_WIDTH CMD_MAX_LEN - 1
+#define PID_COL_WIDTH   10
+#define PPID_COL_WIDTH  PID_COL_WIDTH
+#define STATE_COL_WIDTH 5
+#define NAME_COL_WIDTH  (TASK_COMM_LEN - 1)
 
 /* `/proc` filesystem */
 #define PROC_FILESYSTEM "/proc"
