@@ -24,7 +24,7 @@
 #include <sys/types.h>
 
 /* Version number string */
-#define VERSION "1.2.9"
+#define VERSION "2.0.0"
 
 #define DELIMS ", \n"
 
