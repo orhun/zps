@@ -17,6 +17,7 @@
 
 #define _GNU_SOURCE
 
+#include <assert.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -51,9 +52,8 @@ static void cfprintf(enum ansi_fg_color_code color, FILE *stream,
 {
     va_list vargs;
 
-    if (!stream || !format) {
-        return;
-    }
+    assert(stream);
+    assert(format);
 
     fprintf(stream, "\x1b[%dm", color);
     va_start(vargs, format);
@@ -79,9 +79,8 @@ static void cbfprintf(enum ansi_fg_color_code color, FILE *stream,
 {
     va_list vargs;
 
-    if (!stream || !format) {
-        return;
-    }
+    assert(stream);
+    assert(format);
 
     fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_BOLD);
     if (color) {
@@ -113,9 +112,10 @@ static void cbfprintf_enclosed(enum ansi_fg_color_code color,
 {
     va_list vargs;
 
-    if (!before || !after || !stream || !format) {
-        return;
-    }
+    assert(before);
+    assert(after);
+    assert(stream);
+    assert(format);
 
     fprintf(stream, "%s\x1b[%dm", before, ANSI_DISPLAY_MODE_BOLD);
     if (color) {
@@ -176,9 +176,7 @@ static void __attribute__((noreturn)) help_exit(int status)
  */
 static void silence(FILE *stream)
 {
-    if (!stream) {
-        return;
-    }
+    assert(stream);
     const int fd = open("/dev/null", O_WRONLY);
     if (fd != -1) {
         dup2(fd, fileno(stream));
@@ -209,9 +207,8 @@ static void parse_args(int argc, char *argv[], struct zps_settings *settings)
         {     NULL,           0, NULL,   0},
     };
 
-    if (!argv || !settings) {
-        return;
-    }
+    assert(argv);
+    assert(settings);
 
     for (int opt;
          (opt = getopt_long(argc, argv, ":vhrxlps", longopts, NULL)) != -1;) {
@@ -263,9 +260,9 @@ static ssize_t read_file(char *buf, size_t bufsiz, const char *format, ...)
     va_list vargs;
     char path[PATH_MAX] = {0};
 
-    if (!buf || !format) {
-        return -1;
-    }
+    assert(buf);
+    assert(bufsiz > 0);
+    assert(format);
 
     va_start(vargs, format);
     vsnprintf(path, sizeof(path), format, vargs);
@@ -294,9 +291,8 @@ static ssize_t read_file(char *buf, size_t bufsiz, const char *format, ...)
  */
 static int parse_stat_content(char *stat_buf, struct proc_stats *proc_stats)
 {
-    if (!stat_buf || !proc_stats) {
-        return -1;
-    }
+    assert(stat_buf);
+    assert(proc_stats);
 
     /* Start with the PID field */
     if (sscanf(stat_buf, "%d", &proc_stats->pid) != 1) {
@@ -354,9 +350,8 @@ static int get_proc_stats(const char *pid, struct proc_stats *proc_stats)
 {
     char stat_buf[MAX_BUF_SIZE] = {0};
 
-    if (!pid || !proc_stats) {
-        return -1;
-    }
+    assert(pid);
+    assert(proc_stats);
 
     /* Read the `"/proc/<pid>/stat"` file. */
     if (read_file(stat_buf, sizeof(stat_buf), "%s/%s/%s", PROC_FILESYSTEM, pid,
@@ -394,7 +389,8 @@ static int get_proc_stats(const char *pid, struct proc_stats *proc_stats)
  *
  * @param[in] sig Signal number to get the string representation of
  *
- * @return String representing the signal constant (abbreviated)
+ * @return String representing the signal constant (abbreviated),
+ *         or NULL if no corresponding signal string was found
  */
 const char *sig_abbrev(int sig)
 {
@@ -430,9 +426,10 @@ static int handle_zombie(const struct proc_stats *proc_stats,
                          const struct zps_settings *settings,
                          struct zps_stats *stats, bool verbose)
 {
-    if (!proc_stats || !settings || !stats) {
-        return -1;
-    }
+    assert(proc_stats);
+    assert(settings);
+    assert(stats);
+
     const pid_t ppid = proc_stats->ppid;
     if (ppid <= 0 || ppid == INIT_PID || ppid == KTHREADD_PID) {
         return -1;
@@ -467,9 +464,10 @@ static void handle_found_zombies(const struct proc_vec *defunct_procs,
                                  const struct zps_settings *settings,
                                  struct zps_stats *stats)
 {
-    if (!defunct_procs || !settings || !stats) {
-        return;
-    }
+    assert(defunct_procs);
+    assert(settings);
+    assert(stats);
+
     for (size_t i = 0, sz = proc_vec_size(defunct_procs); i < sz; ++i) {
         const struct proc_stats *const entry = proc_vec_at(defunct_procs, i);
         if (!settings->prompt) {
@@ -497,9 +495,10 @@ static void proc_iter(struct proc_vec *defunct_procs,
                       const struct zps_settings *settings,
                       struct zps_stats *stats)
 {
-    if (!defunct_procs || !settings || !stats) {
-        return;
-    }
+    assert(defunct_procs);
+    assert(settings);
+    assert(stats);
+
     DIR *dir = opendir(PROC_FILESYSTEM);
     if (dir == NULL) {
         return;
@@ -553,9 +552,9 @@ static void prompt_user(const struct proc_vec *defunct_procs,
 {
     char index_prompt[MAX_BUF_SIZE] = {0};
 
-    if (!defunct_procs || !settings || !stats) {
-        return;
-    }
+    assert(defunct_procs);
+    assert(settings);
+    assert(stats);
 
     /* Print user input message and ask for input. */
     fprintf(stdout, "\nEnter process index(es) to proceed: ");
@@ -601,9 +600,9 @@ static void prompt_user(const struct proc_vec *defunct_procs,
  */
 static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
 {
-    if (!settings || !stats) {
-        return -1;
-    }
+    assert(settings);
+    assert(stats);
+
     struct proc_vec *const defunct_procs = proc_vec();
     if (!defunct_procs) {
         return -1;

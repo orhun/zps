@@ -18,6 +18,7 @@
 #ifndef ZPS_H
 #define ZPS_H
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -135,6 +136,7 @@ static inline struct proc_vec *proc_vec(void)
     proc_v->ptr =
         (struct proc_stats *)malloc(proc_v->max_sz * sizeof(*proc_v->ptr));
     if (!proc_v->ptr) {
+        free(proc_v);
         return NULL;
     }
 
@@ -168,9 +170,7 @@ static inline void proc_vec_free(struct proc_vec *proc_v)
 static inline bool proc_vec_add(struct proc_vec *proc_v,
                                 struct proc_stats entry)
 {
-    if (!proc_v) {
-        return false;
-    }
+    assert(proc_v);
 
     if (proc_v->sz == proc_v->max_sz) {
         proc_v->max_sz *= 2;
@@ -193,16 +193,14 @@ static inline bool proc_vec_add(struct proc_vec *proc_v,
  * @param[out] proc_v Process vector to use
  * @param[in]  i      Vector index to access
  *
- * @return `NULL` on error, a pointer to the respective entry otherwise
+ * @return `NULL` if out of bounds, a pointer to the respective entry otherwise
  */
 static inline const struct proc_stats *
 proc_vec_at(const struct proc_vec *proc_v, size_t i)
 {
-    if (!proc_v || i >= proc_v->sz) {
-        return NULL;
-    }
+    assert(proc_v);
 
-    return &proc_v->ptr[i];
+    return i < proc_v->sz ? &proc_v->ptr[i] : NULL;
 }
 
 /*!
@@ -214,9 +212,7 @@ proc_vec_at(const struct proc_vec *proc_v, size_t i)
  */
 static inline size_t proc_vec_size(const struct proc_vec *proc_v)
 {
-    if (!proc_v) {
-        return 0;
-    }
+    assert(proc_v);
 
     return proc_v->sz;
 }
