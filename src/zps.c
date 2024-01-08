@@ -35,31 +35,134 @@
 
 #include "zps.h"
 
+static const char *const abbrevs[NSIG] = {
+    [SIGHUP] = "HUP",       [SIGINT] = "INT",     [SIGQUIT] = "QUIT",
+    [SIGILL] = "ILL",       [SIGTRAP] = "TRAP",   [SIGABRT] = "ABRT",
+    [SIGFPE] = "FPE",       [SIGKILL] = "KILL",   [SIGBUS] = "BUS",
+    [SIGSYS] = "SYS",       [SIGSEGV] = "SEGV",   [SIGPIPE] = "PIPE",
+    [SIGALRM] = "ALRM",     [SIGTERM] = "TERM",   [SIGURG] = "URG",
+    [SIGSTOP] = "STOP",     [SIGTSTP] = "TSTP",   [SIGCONT] = "CONT",
+    [SIGCHLD] = "CHLD",     [SIGTTIN] = "TTIN",   [SIGTTOU] = "TTOU",
+    [SIGPOLL] = "POLL",     [SIGXCPU] = "XCPU",   [SIGXFSZ] = "XFSZ",
+    [SIGVTALRM] = "VTALRM", [SIGPROF] = "PROF",   [SIGUSR1] = "USR1",
+    [SIGUSR2] = "USR2",     [SIGWINCH] = "WINCH",
+};
+
+/*!
+ * Helper to get the string abbreviation of signal constants
+ *
+ * @param[in] sig Signal number to get the string representation of
+ *
+ * @return String representing the signal constant (abbreviated),
+ *         or NULL if no corresponding signal string was found
+ */
+static const char *sig_abbrev(int sig)
+{
+    if (sig < 0 || !((size_t)sig < sizeof(abbrevs))) {
+        return NULL;
+    }
+    return abbrevs[sig];
+}
+
+/*!
+ * Attempts to find the corresponding signal number to the
+ * given signal constant's name
+ *
+ * @param[in] sig_str Signal name to convert
+ *
+ * @return -1 on error, the corresponding signal number otherwise
+ */
+static int sig_str_to_num(const char *sig_str)
+{
+    assert(sig_str);
+
+    const char *const prefix = "SIG";
+    const size_t prefix_len  = strlen(prefix);
+    if (!strncasecmp(sig_str, prefix, prefix_len)) {
+        sig_str += prefix_len;
+    }
+
+    for (size_t sig = 0; sig < sizeof(abbrevs) / sizeof(abbrevs[0]); ++sig) {
+        if (!abbrevs[sig]) {
+            continue;
+        }
+        if (!strcasecmp(sig_str, abbrevs[sig])) {
+            return sig;
+        }
+    }
+    return -1;
+}
+
+/*!
+ * Tries to associate the user's signal input with a known
+ * signal number
+ *
+ * @param[in] sig_str Signal characters to convert
+ *
+ * @return -1 on error, the corresponding signal number otherwise
+ */
+static int user_signal(const char *sig_str)
+{
+    if (!sig_str) {
+        return -1;
+    }
+    if (!isdigit(*sig_str)) {
+        return sig_str_to_num(sig_str);
+    }
+
+    int sig = -1;
+    if (sscanf(sig_str, "%d", &sig) != 1 || sig < 0 || NSIG <= sig) {
+        return -1;
+    }
+    return abbrevs[sig] ? sig : -1;
+}
+
+/*!
+ * Checks if the standard I/O streams refer to a terminal and deduces
+ * whether to use colored output.
+ *
+ * @param[out] settings Settings struct to update
+ *
+ * @return void
+ */
+static void check_interactive(struct zps_settings *settings)
+{
+    assert(settings);
+
+    settings->color_allowed = settings->interactive =
+        isatty(STDIN_FILENO) && isatty(STDOUT_FILENO) && isatty(STDERR_FILENO);
+}
+
 /*!
  * Write colored and formatted text to the specified stream.
  *
  * Resets the display attributes before returning
  *
- * @param[in]  color  ANSI SGR control sequence parameter n (color code)
- * @param[out] stream Pointer to the file to write to
- * @param[in]  format Format string specifying the text to print
- * @param[in]  ...    Variable format string arguments
+ * @param[in]  color         ANSI SGR control sequence parameter n (color code)
+ * @param[in]  color_allowed Boolean specifying whether we can print color
+ * @param[out] stream        Pointer to the file to write to
+ * @param[in]  format        Format string specifying the text to print
+ * @param[in]  ...           Variable format string arguments
  *
  * @return void
  */
-static void cfprintf(enum ansi_fg_color_code color, FILE *stream,
-                     const char *format, ...)
+static void cfprintf(enum ansi_fg_color_code color, bool color_allowed,
+                     FILE *stream, const char *format, ...)
 {
     va_list vargs;
 
     assert(stream);
     assert(format);
 
-    fprintf(stream, "\x1b[%dm", color);
+    if (color_allowed) {
+        fprintf(stream, "\x1b[%dm", color);
+    }
     va_start(vargs, format);
     vfprintf(stream, format, vargs);
     va_end(vargs);
-    fprintf(stream, "\x1b[%dm", ANSI_FG_NORMAL);
+    if (color_allowed) {
+        fprintf(stream, "\x1b[%dm", ANSI_FG_NORMAL);
+    }
 }
 
 /*!
@@ -67,29 +170,34 @@ static void cfprintf(enum ansi_fg_color_code color, FILE *stream,
  *
  * Resets the display attributes before returning
  *
- * @param[in]  color  ANSI SGR control sequence parameter n (color code)
- * @param[out] stream Pointer to the file to write to
- * @param[in]  format Format string specifying the text to print
- * @param[in]  ...    Variable format string arguments
+ * @param[in]  color         ANSI SGR control sequence parameter n (color code)
+ * @param[in]  color_allowed Boolean specifying whether we can print color
+ * @param[out] stream        Pointer to the file to write to
+ * @param[in]  format        Format string specifying the text to print
+ * @param[in]  ...           Variable format string arguments
  *
  * @return void
  */
-static void cbfprintf(enum ansi_fg_color_code color, FILE *stream,
-                      const char *format, ...)
+static void cbfprintf(enum ansi_fg_color_code color, bool color_allowed,
+                      FILE *stream, const char *format, ...)
 {
     va_list vargs;
 
     assert(stream);
     assert(format);
 
-    fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_BOLD);
-    if (color) {
-        fprintf(stream, "\x1b[%dm", color);
+    if (color_allowed) {
+        fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_BOLD);
+        if (color) {
+            fprintf(stream, "\x1b[%dm", color);
+        }
     }
     va_start(vargs, format);
     vfprintf(stream, format, vargs);
     va_end(vargs);
-    fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_NORMAL);
+    if (color_allowed) {
+        fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_NORMAL);
+    }
 }
 
 /*!
@@ -97,18 +205,20 @@ static void cbfprintf(enum ansi_fg_color_code color, FILE *stream,
  *
  * Encloses the bold and colored text.
  *
- * @param[in]  color  ANSI SGR control sequence parameter n (color code)
- * @param[in]  before String to put before the colored content
- * @param[in]  after  String to put after the colored content
- * @param[out] stream Pointer to the file to write to
- * @param[in]  format Format string specifying the text to print
- * @param[in]  ...    Variable format string arguments
+ * @param[in]  color         ANSI SGR control sequence parameter n (color code)
+ * @param[in]  color_allowed Boolean specifying whether we can print color
+ * @param[in]  before        String to put before the colored content
+ * @param[in]  after         String to put after the colored content
+ * @param[out] stream        Pointer to the file to write to
+ * @param[in]  format        Format string specifying the text to print
+ * @param[in]  ...           Variable format string arguments
  *
  * @return void
  */
 static void cbfprintf_enclosed(enum ansi_fg_color_code color,
-                               const char *before, const char *after,
-                               FILE *stream, const char *format, ...)
+                               bool color_allowed, const char *before,
+                               const char *after, FILE *stream,
+                               const char *format, ...)
 {
     va_list vargs;
 
@@ -117,24 +227,34 @@ static void cbfprintf_enclosed(enum ansi_fg_color_code color,
     assert(stream);
     assert(format);
 
-    fprintf(stream, "%s\x1b[%dm", before, ANSI_DISPLAY_MODE_BOLD);
-    if (color) {
-        fprintf(stream, "\x1b[%dm", color);
+    fprintf(stream, "%s", before);
+    if (color_allowed) {
+        fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_BOLD);
+        if (color) {
+            fprintf(stream, "\x1b[%dm", color);
+        }
     }
     va_start(vargs, format);
     vfprintf(stream, format, vargs);
     va_end(vargs);
-    fprintf(stream, "\x1b[%dm%s", ANSI_DISPLAY_MODE_NORMAL, after);
+    if (color_allowed) {
+        fprintf(stream, "\x1b[%dm", ANSI_DISPLAY_MODE_NORMAL);
+    }
+    fprintf(stream, "%s", after);
 }
 
 /*!
  * Print version and exit
  *
- * @param[in] status Exit status to use
+ * @param[in] status   Exit status to use
+ * @param[in] settings Pointer to settings determining output coloring (bold)
  */
-static void __attribute__((noreturn)) version_exit(int status)
+static void __attribute__((noreturn))
+version_exit(int status, struct zps_settings *settings)
 {
-    cbfprintf(ANSI_FG_NORMAL, status ? stderr : stdout,
+    assert(settings);
+
+    cbfprintf(ANSI_FG_NORMAL, settings->interactive, status ? stderr : stdout,
               "\n -hhhhdddddd/\n"
               " `++++++mMN+\n"
               "      :dMy.\n"
@@ -157,13 +277,14 @@ static void __attribute__((noreturn)) help_exit(int status)
             "\nUsage:\n"
             "  zps [options]\n\n"
             "Options:\n"
-            "  -r, --reap      reap zombie processes\n"
-            "  -x, --lreap     list and reap zombie processes\n"
-            "  -l, --list      list zombie processes only\n"
-            "  -p, --prompt    show prompt for selecting processes\n"
-            "  -s, --silent    run in silent mode\n"
             "  -v, --version   show version\n"
-            "  -h, --help      show help\n\n");
+            "  -h, --help      show help\n"
+            "  -a, --all       list all user-space processes\n"
+            "  -r, --reap      reap zombie processes\n"
+            "  -s, --signal    signal to be used on zombie parents\n"
+            "  -p, --prompt    show prompt for selecting processes\n"
+            "  -q, --quiet     reap in quiet mode\n"
+            "  -n, --no-color  disable color output\n\n");
     exit(status);
 }
 
@@ -177,10 +298,52 @@ static void __attribute__((noreturn)) help_exit(int status)
 static void silence(FILE *stream)
 {
     assert(stream);
+
     const int fd = open("/dev/null", O_WRONLY);
     if (fd != -1) {
         dup2(fd, fileno(stream));
         close(fd);
+    }
+}
+
+/*!
+ * Function performing sanity checks on the configured settings
+ *
+ * This function will call `exit()` if the settings are erroneous.
+ *
+ * @param[in] settings Settings to check
+ *
+ * @return void
+ */
+static void settings_check(const struct zps_settings *settings)
+{
+    assert(settings);
+
+    bool failed = false;
+    if (settings->sig == -1) {
+        cfprintf(ANSI_FG_RED, settings->color_allowed, stderr,
+                 "Unknown signal\n");
+        failed = true;
+    }
+    if (settings->sig && !settings->signal) {
+        cfprintf(ANSI_FG_RED, settings->color_allowed, stderr,
+                 "The -s option has to be used with either -r or -p\n");
+        failed = true;
+    }
+    if (settings->quiet) {
+        if (settings->show_all) {
+            cfprintf(ANSI_FG_RED, settings->color_allowed, stderr,
+                     "Incompatible options: -q, -a\n");
+            failed = true;
+        }
+        if (settings->prompt) {
+            cfprintf(ANSI_FG_RED, settings->color_allowed, stderr,
+                     "Incompatible options: -q, -p\n");
+            failed = true;
+        }
+    }
+    if (failed) {
+        help_exit(EXIT_FAILURE);
     }
 }
 
@@ -197,51 +360,53 @@ static void parse_args(int argc, char *argv[], struct zps_settings *settings)
 {
     /* Long options for command line arguments  */
     static const struct option longopts[] = {
-        {"version", no_argument, NULL, 'v'},
-        {   "help", no_argument, NULL, 'h'},
-        {   "reap", no_argument, NULL, 'r'},
-        {  "lreap", no_argument, NULL, 'x'},
-        {   "list", no_argument, NULL, 'l'},
-        { "prompt", no_argument, NULL, 'p'},
-        { "silent", no_argument, NULL, 's'},
-        {     NULL,           0, NULL,   0},
+        { "version",       no_argument, NULL, 'v'},
+        {    "help",       no_argument, NULL, 'h'},
+        {     "all",       no_argument, NULL, 'a'},
+        {    "reap",       no_argument, NULL, 'r'},
+        {  "signal", required_argument, NULL, 's'},
+        {  "prompt",       no_argument, NULL, 'p'},
+        {   "quiet",       no_argument, NULL, 'q'},
+        {"no-color",       no_argument, NULL, 'n'},
+        {      NULL,                 0, NULL,   0},
     };
 
     assert(argv);
     assert(settings);
 
     for (int opt;
-         (opt = getopt_long(argc, argv, ":vhrxlps", longopts, NULL)) != -1;) {
+         (opt = getopt_long(argc, argv, "vhars:pqn", longopts, NULL)) != -1;) {
         switch (opt) {
         case 'v': /* Show version information. */
-            version_exit(EXIT_SUCCESS);
+            version_exit(EXIT_SUCCESS, settings);
         case 'h': /* Show help message. */
             help_exit(EXIT_SUCCESS);
-        case 'l': /* List defunct processes only. */
-            settings->show_defunct_list = true;
-            settings->terminate         = true;
-            // fall through
-        case 'r': /* Don't list running processes. */
-            settings->show_proc_list = false;
-            // fall through
-        case 'x': /* Reap defunct processes. */
-            settings->terminate = !settings->terminate;
+        case 'a': /* List all processes. */
+            settings->show_all = true;
             break;
-        case 'p': /* Show prompt for the reaping option. */
-            settings->prompt    = true;
-            settings->terminate = true;
+        case 'r': /* Actually reap the zombies. */
+            settings->signal = true;
             break;
-        case 's': /* Silent mode. */
-            settings->silent = true;
+        case 's': /* User-specified zombie parent signal. */
+            settings->sig = user_signal(optarg);
             break;
-        case ':': /* Missing argument. */
-            cfprintf(ANSI_FG_RED, stderr, "Option requires an argument.\n");
-            exit(EXIT_FAILURE);
-        case '?': /* Unknown option. */
-            cfprintf(ANSI_FG_RED, stderr, "Unknown option.\n");
-            exit(EXIT_FAILURE);
+        case 'p': /* Show a prompt for interactive reaping. */
+            settings->prompt = true;
+            settings->signal = true;
+            break;
+        case 'q': /* Quiet reap mode. */
+            settings->quiet  = true;
+            settings->signal = true;
+            break;
+        case 'n': /* Disable color output. */
+            settings->color_allowed = false;
+            break;
+        default:
+            help_exit(EXIT_FAILURE);
         }
     }
+
+    settings_check(settings);
 }
 
 /*!
@@ -385,38 +550,10 @@ static int get_proc_stats(const char *pid, struct proc_stats *proc_stats)
 }
 
 /*!
- * Helper to get the string abbreviation of signal constants
- *
- * @param[in] sig Signal number to get the string representation of
- *
- * @return String representing the signal constant (abbreviated),
- *         or NULL if no corresponding signal string was found
- */
-const char *sig_abbrev(int sig)
-{
-    static const char *const abbrevs[NSIG] = {
-        [SIGHUP] = "HUP",       [SIGINT] = "INT",     [SIGQUIT] = "QUIT",
-        [SIGILL] = "ILL",       [SIGTRAP] = "TRAP",   [SIGABRT] = "ABRT",
-        [SIGFPE] = "FPE",       [SIGKILL] = "KILL",   [SIGBUS] = "BUS",
-        [SIGSYS] = "SYS",       [SIGSEGV] = "SEGV",   [SIGPIPE] = "PIPE",
-        [SIGALRM] = "ALRM",     [SIGTERM] = "TERM",   [SIGURG] = "URG",
-        [SIGSTOP] = "STOP",     [SIGTSTP] = "TSTP",   [SIGCONT] = "CONT",
-        [SIGCHLD] = "CHLD",     [SIGTTIN] = "TTIN",   [SIGTTOU] = "TTOU",
-        [SIGPOLL] = "POLL",     [SIGXCPU] = "XCPU",   [SIGXFSZ] = "XFSZ",
-        [SIGVTALRM] = "VTALRM", [SIGPROF] = "PROF",   [SIGUSR1] = "USR1",
-        [SIGUSR2] = "USR2",     [SIGWINCH] = "WINCH",
-    };
-    if (sig < 0 || !((size_t)sig < sizeof(abbrevs))) {
-        return NULL;
-    }
-    return abbrevs[sig];
-}
-
-/*!
  * Send signal to the given PPID of the `proc_stats` entry.
  *
  * @param[in]  proc_stats Pointer to the entry to send the signal for
- * @param[in]  settings   Pointer to user-specified settings (terminate?)
+ * @param[in]  settings   Pointer to user-specified settings (signal?)
  * @param[out] stats      The `signaled_procs` field will be updated
  * @param[in]  verbose    Boolean specifying the behavior (print result)
  *
@@ -434,17 +571,19 @@ static int handle_zombie(const struct proc_stats *proc_stats,
     if (ppid <= 0 || ppid == INIT_PID || ppid == KTHREADD_PID) {
         return -1;
     }
-    const int sig     = settings->terminate ? SIGTERM : SIGCHLD;
+    const int sig     = settings->sig ? settings->sig : SIGTERM;
     const int kill_rc = kill(ppid, sig);
     if (!kill_rc) {
         ++stats->signaled_procs;
         const char *const sigabbrev = sig_abbrev(sig);
         if (verbose) {
-            cbfprintf_enclosed(ANSI_FG_RED, "\n[", "]", stdout, "SIG%s",
+            cbfprintf_enclosed(ANSI_FG_RED, settings->color_allowed, "\n[", "]",
+                               stdout, "SIG%s",
                                sigabbrev ? sigabbrev : "Unknown signal");
         }
     } else if (verbose) {
-        cbfprintf_enclosed(ANSI_FG_RED, "\n[", "]", stdout, "Failed to signal");
+        cbfprintf_enclosed(ANSI_FG_RED, settings->color_allowed, "\n[", "]",
+                           stdout, "Failed to signal");
     }
     return kill_rc;
 }
@@ -455,7 +594,7 @@ static int handle_zombie(const struct proc_stats *proc_stats,
  * If the user is not to be prompted, this function immediately sends a signal.
  *
  * @param[in]  defunct_procs Pointer to the zombie process vector
- * @param[in]  settings      Pointer to user-specified settings (terminate?)
+ * @param[in]  settings      Pointer to user-specified settings (signal?)
  * @param[out] stats         The `signaled_procs` field will be updated
  *
  * @return void
@@ -473,7 +612,8 @@ static void handle_found_zombies(const struct proc_vec *defunct_procs,
         if (!settings->prompt) {
             handle_zombie(entry, settings, stats, true);
         } else {
-            cbfprintf_enclosed(ANSI_FG_RED, "\n[", "]", stdout, "%zu", i + 1);
+            cbfprintf_enclosed(ANSI_FG_RED, settings->color_allowed, "\n[", "]",
+                               stdout, "%zu", i + 1);
         }
 
         fprintf(stdout,
@@ -523,14 +663,13 @@ static void proc_iter(struct proc_vec *defunct_procs,
             proc_vec_add(defunct_procs, proc_stats);
         }
         /* Print the process's stats. */
-        if (settings->show_proc_list ||
-            (proc_stats.state == STATE_ZOMBIE && settings->show_defunct_list)) {
-            cfprintf(proc_stats.state == STATE_ZOMBIE ? ANSI_FG_RED :
-                                                        ANSI_FG_NORMAL,
-                     stdout, "%-*d %-*d %-*c %*.*s %s\n", PID_COL_WIDTH,
-                     proc_stats.pid, PPID_COL_WIDTH, proc_stats.ppid,
-                     STATE_COL_WIDTH, proc_stats.state, NAME_COL_WIDTH,
-                     NAME_COL_WIDTH, proc_stats.name, proc_stats.cmd);
+        if (settings->show_all || proc_stats.state == STATE_ZOMBIE) {
+            cfprintf(
+                proc_stats.state == STATE_ZOMBIE ? ANSI_FG_RED : ANSI_FG_NORMAL,
+                settings->color_allowed, stdout, "%-*d %-*d %-*c %*.*s %s\n",
+                PID_COL_WIDTH, proc_stats.pid, PPID_COL_WIDTH, proc_stats.ppid,
+                STATE_COL_WIDTH, proc_stats.state, NAME_COL_WIDTH,
+                NAME_COL_WIDTH, proc_stats.name, proc_stats.cmd);
         }
     }
 
@@ -541,7 +680,7 @@ static void proc_iter(struct proc_vec *defunct_procs,
  * Request user input to explicitly signal processes.
  *
  * @param[in,out] defunct_procs Pointer to the zombie process vector
- * @param[in]     settings      Pointer to user-specified settings (terminate?)
+ * @param[in]     settings      Pointer to user-specified settings (signal?)
  * @param[out]    stats         The `signaled_procs` field will be updated
  *
  * @return void
@@ -569,24 +708,25 @@ static void prompt_user(const struct proc_vec *defunct_procs,
          token       = strtok_r(NULL, DELIMS, &saveptr)) {
         size_t index = 0;
         if (token[0] == '-' || sscanf(token, "%zu", &index) != 1) {
-            cfprintf(ANSI_FG_RED, stderr, "\nInvalid input: %s\n", token);
+            cfprintf(ANSI_FG_RED, settings->color_allowed, stderr,
+                     "\nInvalid input: %s\n", token);
             continue;
         }
         --index;
         if (!(index < proc_vec_size(defunct_procs))) {
-            cfprintf(ANSI_FG_RED, stderr, "\nIndex not in range: %zu\n",
-                     index + 1);
+            cfprintf(ANSI_FG_RED, settings->color_allowed, stderr,
+                     "\nIndex not in range: %zu\n", index + 1);
             continue;
         }
 
         const struct proc_stats *entry = proc_vec_at(defunct_procs, index);
         handle_zombie(entry, settings, stats, true);
-        cbfprintf_enclosed(ANSI_FG_MAGENTA, " -> ", " ", stdout, "%s",
-                           entry->name);
-        cbfprintf_enclosed(ANSI_FG_MAGENTA, "[pid (Z): ", ", ", stdout, "%d",
-                           entry->pid);
-        cbfprintf_enclosed(ANSI_FG_RED, "ppid: ", "]\n", stdout, "%d",
-                           entry->ppid);
+        cbfprintf_enclosed(ANSI_FG_MAGENTA, settings->color_allowed, " -> ",
+                           " ", stdout, "%s", entry->name);
+        cbfprintf_enclosed(ANSI_FG_MAGENTA, settings->color_allowed,
+                           "[PID (Z): ", ", ", stdout, "%d", entry->pid);
+        cbfprintf_enclosed(ANSI_FG_RED, settings->color_allowed,
+                           "PPID: ", "]\n", stdout, "%d", entry->ppid);
     }
 }
 
@@ -609,15 +749,16 @@ static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
     }
 
     /* Print column titles (header line). */
-    if (settings->show_proc_list || settings->show_defunct_list) {
-        cbfprintf(ANSI_FG_NORMAL, stdout, "%-*s %-*s %-*s %*.*s %s\n",
-                  PID_COL_WIDTH, "PID", PPID_COL_WIDTH, "PPID", STATE_COL_WIDTH,
-                  "STATE", NAME_COL_WIDTH, NAME_COL_WIDTH, "NAME", "COMMAND");
-    }
+    cbfprintf(ANSI_FG_NORMAL, settings->color_allowed, stdout,
+              "%-*s %-*s %-*s %*.*s %s\n", PID_COL_WIDTH, "PID", PPID_COL_WIDTH,
+              "PPID", STATE_COL_WIDTH, "STATE", NAME_COL_WIDTH, NAME_COL_WIDTH,
+              "NAME", "COMMAND");
 
     /* Main function logic */
     proc_iter(defunct_procs, settings, stats);
-    handle_found_zombies(defunct_procs, settings, stats);
+    if (settings->signal) {
+        handle_found_zombies(defunct_procs, settings, stats);
+    }
     if (settings->prompt && proc_vec_size(defunct_procs)) {
         prompt_user(defunct_procs, settings, stats);
     }
@@ -633,11 +774,13 @@ static int check_procs(struct zps_settings *settings, struct zps_stats *stats)
 int main(int argc, char *argv[])
 {
     struct zps_settings settings = {
-        .terminate         = false,
-        .show_proc_list    = true,
-        .show_defunct_list = false,
-        .prompt            = false,
-        .silent            = false,
+        .sig           = 0,
+        .signal        = false,
+        .show_all      = false,
+        .prompt        = false,
+        .quiet         = false,
+        .interactive   = true,
+        .color_allowed = true,
     };
     struct zps_stats stats = {
         .defunct_count  = 0,
@@ -646,8 +789,9 @@ int main(int argc, char *argv[])
     struct timespec start = {0}, end = {0};
 
     clock_gettime(CLOCK_REALTIME, &start);
+    check_interactive(&settings);
     parse_args(argc, argv, &settings);
-    if (settings.silent) {
+    if (settings.quiet) {
         silence(stdout);
         silence(stderr);
     }
@@ -659,7 +803,7 @@ int main(int argc, char *argv[])
     if (stats.signaled_procs) {
         /* Show signal count and taken time. */
         fprintf(stdout,
-                "\nparent(s) signaled: %zu/%zu\nelapsed time: %.2f ms\n",
+                "\nParent(s) signaled: %zu/%zu\nElapsed time: %.2f ms\n",
                 stats.signaled_procs, stats.defunct_count, duration_ms);
     }
 

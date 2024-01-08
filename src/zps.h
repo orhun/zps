@@ -78,16 +78,20 @@ enum ansi_fg_color_code {
 
 /* Struct for keeping track of the `zps` CLI options */
 struct zps_settings {
-    /* Boolean value for listing the running processes */
-    bool show_proc_list;
-    /* Boolean value for listing the defunct processes only */
-    bool show_defunct_list;
-    /* Boolean value for terminating defunct processes */
-    bool terminate;
-    /* Boolean value for showing prompt for the reaping option */
+    /* Signal to use */
+    int sig;
+    /* Boolean value for signaling defunct processes' parents */
+    bool signal;
+    /* Boolean value for listing all running processes */
+    bool show_all;
+    /* Boolean value for showing a prompt for the reaping option */
     bool prompt;
-    /* Boolean value for silent mode */
-    bool silent;
+    /* Boolean value for quiet mode */
+    bool quiet;
+    /* Boolean value for connection to a terminal */
+    bool interactive;
+    /* Boolean value for colored output */
+    bool color_allowed;
 };
 
 /* Struct for keeping track of the zombies */
