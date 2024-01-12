@@ -1,5 +1,5 @@
 .\" Manpage for zps.
-.TH ZPS "1" "December 2023" "zps" "User Commands"
+.TH ZPS "1" "January 2024" "zps" "User Commands"
 .SH NAME
 zps \- list/reap zombie processes
 .SH SYNOPSIS
@@ -9,26 +9,32 @@ zps \- list/reap zombie processes
 zps lists the running processes with their stats and indicates/reaps the zombie processes.
 .SH OPTIONS
 .TP
-\fB\-r\fR, \fB\-\-reap\fR
-reap zombie processes
+.BR \-v ", " \-\-version
+Show version information.
 .TP
-\fB\-x\fR, \fB\-\-lreap\fR
-list and reap zombie processes
+.BR \-h ", " \-\-help
+Show the help text.
 .TP
-\fB\-l\fR, \fB\-\-list\fR
-list zombie processes only
+.BR \-a ", " \-\-all
+List all user-space processes (not just zombies).
 .TP
-\fB\-p\fR, \fB\-\-prompt\fR
-show prompt for selecting processes
+.BR \-r ", " \-\-reap
+Reap zombie processes.
 .TP
-\fB\-s\fR, \fB\-\-silent\fR
-run in silent mode
+.BI \-s\  sig \fR,\ \fB\-\-signal= sig \fR,\ \fB\-\-signal \ sig
+Use signal
+.I sig
+on zombie parents (default:
+.BR SIGTERM ).
 .TP
-\fB\-v\fR, \fB\-\-version\fR
-show version
+.BR \-p ", " \-\-prompt
+Show prompt for selecting processes.
 .TP
-\fB\-h\fR, \fB\-\-help\fR
-show help
+.BR \-q ", " \-\-quiet
+Reap in quiet mode.
+.TP
+.BR \-n ", " \-\-no-color
+Disable color output.
 .SH BUGS
 No known bugs.
 Use "Issues" page for reporting bugs: <https://github.com/orhun/zps/issues/>

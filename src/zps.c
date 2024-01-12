@@ -277,14 +277,14 @@ static void __attribute__((noreturn)) help_exit(int status)
             "\nUsage:\n"
             "  zps [options]\n\n"
             "Options:\n"
-            "  -v, --version   show version\n"
-            "  -h, --help      show help\n"
-            "  -a, --all       list all user-space processes\n"
-            "  -r, --reap      reap zombie processes\n"
-            "  -s, --signal    signal to be used on zombie parents\n"
-            "  -p, --prompt    show prompt for selecting processes\n"
-            "  -q, --quiet     reap in quiet mode\n"
-            "  -n, --no-color  disable color output\n\n");
+            "  -v, --version        show version\n"
+            "  -h, --help           show help\n"
+            "  -a, --all            list all user-space processes\n"
+            "  -r, --reap           reap zombie processes\n"
+            "  -s, --signal   <sig> signal to be used on zombie parents\n"
+            "  -p, --prompt         show prompt for selecting processes\n"
+            "  -q, --quiet          reap in quiet mode\n"
+            "  -n, --no-color       disable color output\n\n");
     exit(status);
 }
 
