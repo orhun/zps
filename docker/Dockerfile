@@ -9,7 +9,7 @@ WORKDIR /app/
 # Copy source files to working directory
 COPY src .
 # Compile
-RUN gcc -s -O3 -Wall -Wextra -pedantic zps.c -o zps
+RUN gcc -s -O3 -Wall -Wextra -pedantic -DNDEBUG zps.c -o zps
 # Create Alpine image for runtime
 FROM alpine:3.16.2 AS runtime-image
 # Set working directory
