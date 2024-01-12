@@ -35,6 +35,11 @@
 
 #include "zps.h"
 
+#ifndef PATH_MAX
+#define PATH_MAX MAX_BUF_SIZE
+#endif
+
+/* Array used for lookup of common signals' abbreviations */
 static const char *const abbrevs[NSIG] = {
     [SIGHUP] = "HUP",       [SIGINT] = "INT",     [SIGQUIT] = "QUIT",
     [SIGILL] = "ILL",       [SIGTRAP] = "TRAP",   [SIGABRT] = "ABRT",
@@ -430,8 +435,12 @@ static ssize_t read_file(char *buf, size_t bufsiz, const char *format, ...)
     assert(format);
 
     va_start(vargs, format);
-    vsnprintf(path, sizeof(path), format, vargs);
+    int num_required = vsnprintf(path, sizeof(path), format, vargs);
     va_end(vargs);
+    /* Check for errors or truncation */
+    if (num_required < 0 || (size_t)num_required >= sizeof(path)) {
+        return -1;
+    }
 
     const int fd = open(path, O_RDONLY);
     if (fd == -1) {

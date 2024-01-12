@@ -153,16 +153,6 @@ Options:
 
 ![zps -n](assets/demo-no-color.gif)
 
-## TODO(s)
-
-- Check Korean translation for mistranslations introduced in new release.
-- Maybe extend `cmdline`/`COMMAND` output to extend to the maximum line length,
-although this would still lead to varying results if one were to look for
-a specific string in the "interactive"/non-piped `zps` output manually
-compared to piping `stdout` to `grep`, as the maximum line length would
-not have the same limit. Thus, it might actually be desirable to actually
-limit the lengths in any case.
-
 ## License
 
 GNU General Public License v3.0 only ([GPL-3.0-only](https://www.gnu.org/licenses/gpl.txt))
