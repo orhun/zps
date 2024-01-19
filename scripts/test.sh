@@ -12,11 +12,12 @@ gcc -O3 -Wall zproc.c -o z.o
 cd "${project_dir}/src"
 gcc -fprofile-arcs -ftest-coverage -s -O3 -Wall -Wextra -pedantic zps.c -o zps
 ./zps -v && ./zps -h && printf '1' | ./zps -p
-./zps -x && ./zps -lr && ./zps -f
-./zps -r -f 20 && ./zps -s
+./zps -a && ./zps -r
+./zps -q && ./zps -s 9 && ./zps -s SIGTERM && ./zps -s term
+./zps -n
 # Print code coverage information
 gcov zps.c
 # Send report to codecov
 [ "$UPLOAD" == 'true' ] && bash <(curl -s https://codecov.io/bash)
 # Cleanup
-rm -v zps zps.c.* zps.gc* stdlib.h.gcov
+rm -v zps zps.c.* zps.gc*

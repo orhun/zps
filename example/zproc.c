@@ -3,7 +3,7 @@
  * or defunct process is a process that has completed execution but still
  * has an entry in the process table. (Wikipedia)
  * This program illustrates how zombie or defunct processes are created.
- * Copyright © 2019-2023 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
+ * Copyright © 2019-2024 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,31 +20,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-static pid_t childPID;        /* PID of the child process */
-static int sleepSeconds = 60; /* Sleep time of the parent process */
-
 /*!
- * Entry-point
+ * Entry point
  */
-int main (int argc, char *argv[]) {
-	/* Parse command line arguments. */
-	if (argc > 1)
-		 sleepSeconds = atoi(argv[1]);
-	/* Call fork to create a child process. */
-	childPID = fork();
-	/* Parent process ID. */
-	if (childPID > 0) {
-		/**
-		* Sleep and eventually exit without the wait call.
-		* This will cause child process to be a defunct process.
-		*/
-		fprintf(stderr, "PPID: %d\n", getpid());
-		sleep(sleepSeconds);
-	/* Child process ID. */
-  	} else if (childPID == 0) {
-		fprintf(stderr,"PID: %d\n", getpid());
-  	}
-	return EXIT_SUCCESS;
+int main(int argc, char *argv[])
+{
+    unsigned int sleep_seconds = 60;
+    if (argc == 2) { /* Parse command line argument. */
+        sscanf(argv[1], "%u", &sleep_seconds);
+    }
+    pid_t pid = fork();
+    if (pid > 0) { /* Parent process */
+        /**
+         * Sleep and eventually exit without the wait call.
+         * This will cause child process to be a defunct process.
+         */
+        fprintf(stderr, "PPID: %d\n", getpid());
+        sleep(sleep_seconds);
+    } else if (!pid) { /* Child process */
+        fprintf(stderr, "PID: %d\n", getpid());
+    }
+    return EXIT_SUCCESS;
 }

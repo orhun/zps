@@ -1,6 +1,6 @@
 # Project and compiler information
 NAME := zps
-CFLAGS := -s -O3 -Wall -Wextra -pedantic
+CFLAGS := -s -O3 -Wall -Wextra -pedantic -DNDEBUG
 ifeq ($(CC),)
     CC := gcc
 endif

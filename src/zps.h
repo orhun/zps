@@ -1,6 +1,6 @@
 /**!
  * zps, a small utility for listing and reaping zombie processes.
- * Copyright © 2019-2023 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
+ * Copyright © 2019-2024 by Orhun Parmaksız <orhunparmaksiz@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,22 +18,206 @@
 #ifndef ZPS_H
 #define ZPS_H
 
-#define VERSION "1.2.9"            /* Version */
-#define _XOPEN_SOURCE 700          /* POSIX.1-2008 + XSI (SuSv4) */
-#define _LARGEFILE64_SOURCE        /* Enable LFS */
-#define _FILE_OFFSET_BITS 64       /* Support 64-bit file sizes */
-#define MAX_FD 15                  /* Maximum number of file descriptors to use */
-#define PROC_FILESYSTEM "/proc"    /* '/proc' filesystem */
-#define STAT_FILE "stat"           /* PID status file */
-#define CMD_FILE "cmdline"         /* PID command file */
-#define BLOCK_SIZE 4096            /* Fixed block size */
-#define STATE_ZOMBIE "Z"           /* Status file entry of zombie state */
-#define DEFAULT_STATE "~"          /* Default state of the process before parsing */
-#define STAT_REGEX "\\(([^)]*)\\)" /* Regex for matching the values in 'stat' file */
-#define REG_MAX_MATCH 8            /* Maximum number of regex matches */
-#define SPACE_REPLACEMENT '~'      /* Character for replacing the spaces in regex match */
-#define CLR_DEFAULT "\x1b[0m"      /* Default color and style attributes */
-#define CLR_BOLD "\x1b[1m"         /* Bold attribute */
-#define CLR_RED "\x1b[31m"         /* Color red */
+#include <assert.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <sys/types.h>
+
+/* Version number string */
+#define VERSION "2.0.0"
+
+#define DELIMS ", \n"
+
+/* PID of `init` */
+#define INIT_PID 1
+/* PID of `kthreadd` */
+#define KTHREADD_PID 2
+
+/* Maximum length of userland process names (incl. '\0') */
+#define TASK_COMM_LEN 16
+/* We will truncate the cmdline string (incl. '\0') */
+#define CMD_MAX_LEN 32
+
+/* Formatting widths for our columns */
+#define PID_COL_WIDTH   10
+#define PPID_COL_WIDTH  PID_COL_WIDTH
+#define STATE_COL_WIDTH 5
+#define NAME_COL_WIDTH  (TASK_COMM_LEN - 1)
+
+/* `/proc` filesystem */
+#define PROC_FILESYSTEM "/proc"
+/* PID status file */
+#define STAT_FILE "stat"
+/* PID command file */
+#define CMD_FILE "cmdline"
+
+/* Fixed buffer size */
+#define MAX_BUF_SIZE 4096
+
+/* Status file entry of zombie state */
+#define STATE_ZOMBIE 'Z'
+
+/* Enum for relevant ANSI SGR display modes */
+enum ansi_display_mode_code {
+    ANSI_DISPLAY_MODE_NORMAL = 0,
+    ANSI_DISPLAY_MODE_BOLD   = 1,
+};
+
+/* Enum for the different standard ANSI SGR color options */
+enum ansi_fg_color_code {
+    ANSI_FG_NORMAL  = 0,
+    ANSI_FG_BLACK   = 30,
+    ANSI_FG_RED     = 31,
+    ANSI_FG_GREEN   = 32,
+    ANSI_FG_YELLOW  = 33,
+    ANSI_FG_BLUE    = 34,
+    ANSI_FG_MAGENTA = 35,
+    ANSI_FG_CYAN    = 36,
+    ANSI_FG_WHITE   = 37,
+};
+
+/* Struct for keeping track of the `zps` CLI options */
+struct zps_settings {
+    /* Signal to use */
+    int sig;
+    /* Boolean value for signaling defunct processes' parents */
+    bool signal;
+    /* Boolean value for listing all running processes */
+    bool show_all;
+    /* Boolean value for showing a prompt for the reaping option */
+    bool prompt;
+    /* Boolean value for quiet mode */
+    bool quiet;
+    /* Boolean value for connection to a terminal */
+    bool interactive;
+    /* Boolean value for colored output */
+    bool color_allowed;
+};
+
+/* Struct for keeping track of the zombies */
+struct zps_stats {
+    /* Number of found defunct processes */
+    size_t defunct_count;
+    /* Number of signaled processes */
+    size_t signaled_procs;
+};
+
+/* Struct for storing process stats */
+struct proc_stats {
+    pid_t pid;
+    pid_t ppid;
+    char state;
+    char padding[7];
+    char name[TASK_COMM_LEN];
+    char cmd[CMD_MAX_LEN];
+};
+
+/* Struct to be used as a dynamically growing vector with immutable elements */
+struct proc_vec {
+    struct proc_stats *ptr;
+    size_t sz;
+    size_t max_sz;
+};
+
+/*!
+ * Constructs an initial process vector with `max_sz` of `64`.
+ *
+ * The `proc_vec_free()` function should be called on this return value
+ * in order to free the resources.
+ *
+ * @return Pointer to the allocated structure, `NULL` on error
+ */
+static inline struct proc_vec *proc_vec(void)
+{
+    struct proc_vec *proc_v = (struct proc_vec *)malloc(sizeof(*proc_v));
+    if (!proc_v) {
+        return NULL;
+    }
+
+    proc_v->max_sz = 64;
+    proc_v->sz     = 0;
+    proc_v->ptr =
+        (struct proc_stats *)malloc(proc_v->max_sz * sizeof(*proc_v->ptr));
+    if (!proc_v->ptr) {
+        free(proc_v);
+        return NULL;
+    }
+
+    return proc_v;
+}
+
+/*!
+ * Frees and invalidates the process vector pointed to by the `proc_v`.
+ *
+ * @param[out] proc_v Process vector to deallocate
+ *
+ * @return void
+ */
+static inline void proc_vec_free(struct proc_vec *proc_v)
+{
+    if (!proc_v) {
+        return;
+    }
+    free(proc_v->ptr);
+    free(proc_v);
+}
+
+/*!
+ * Adds `entry` to the end of the `proc_v` vector.
+ *
+ * @param[out] proc_v Process vector to use
+ * @param[in]  entry  Entry to add to the vector
+ *
+ * @return `false` on error, `true` otherwise
+ */
+static inline bool proc_vec_add(struct proc_vec *proc_v,
+                                struct proc_stats entry)
+{
+    assert(proc_v);
+
+    if (proc_v->sz == proc_v->max_sz) {
+        proc_v->max_sz *= 2;
+        struct proc_stats *tmp = (struct proc_stats *)realloc(
+            proc_v->ptr, proc_v->max_sz * sizeof(*proc_v->ptr));
+        if (!tmp) {
+            return false;
+        } else {
+            proc_v->ptr = tmp;
+        }
+    }
+
+    proc_v->ptr[proc_v->sz++] = entry;
+    return true;
+}
+
+/*!
+ * Returns a pointer to the element at index `i` in `proc_v`.
+ *
+ * @param[out] proc_v Process vector to use
+ * @param[in]  i      Vector index to access
+ *
+ * @return `NULL` if out of bounds, a pointer to the respective entry otherwise
+ */
+static inline const struct proc_stats *
+proc_vec_at(const struct proc_vec *proc_v, size_t i)
+{
+    assert(proc_v);
+
+    return i < proc_v->sz ? &proc_v->ptr[i] : NULL;
+}
+
+/*!
+ * Returns the current number of elements stored in `proc_v`
+ *
+ * @param[in] proc_v Process vector to use
+ *
+ * @return Size of the vector pointed to by `proc_v`
+ */
+static inline size_t proc_vec_size(const struct proc_vec *proc_v)
+{
+    assert(proc_v);
+
+    return proc_v->sz;
+}
 
 #endif // ZPS_H

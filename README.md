@@ -4,7 +4,7 @@
 
 ### A small utility for listing and reaping zombie processes on GNU/Linux.
 
-![zps](https://user-images.githubusercontent.com/24392180/66898210-64e6ed80-f001-11e9-8e27-0ab3a7cabdca.gif)
+![zps](assets/demo-top.gif)
 
 [![Build](https://img.shields.io/github/actions/workflow/status/orhun/zps/ci.yml?color=black&style=flat-square)](https://github.com/orhun/zps/actions?query=workflow%3A%22Continuous+Integration%22)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/orhun/zps/docker.yml?color=black&style=flat-square&label=docker)](https://github.com/orhun/zps/actions?query=workflow%3A%22Docker+Automated+Builds%22)
@@ -24,7 +24,7 @@ Zombie processes are not harmful since they are not affecting other processes or
 cd example/ && gcc -O3 -Wall zproc.c -o zproc && ./zproc
 ```
 
-**zps** aims to list the running processes at a particular time with stats and indicate the zombie processes on this list. It can also reap these zombie processes automatically if `--reap` argument is provided. There's also `--lreap` argument for reaping zombie processes after listing. See [usage](https://github.com/orhun/zps#usage) for more information.  
+**zps** aims to list the running processes at a particular time with stats and indicate the zombie processes on this list. It can also reap these zombie processes automatically based on the arguments provided (by default using `SIGTERM`). See [usage](https://github.com/orhun/zps#usage) for more information.
 Technically, **zps** reads process stats from [/proc](https://www.tldp.org/LDP/Linux-Filesystem-Hierarchy/html/proc.html) filesystem and uses [C POSIX library](https://en.wikipedia.org/wiki/C_POSIX_library) to handle listing, sending signals and other operations.
 
 <details>
@@ -43,10 +43,11 @@ Technically, **zps** reads process stats from [/proc](https://www.tldp.org/LDP/L
     - [Building an image](#building-an-image)
     - [Running the image in container](#running-the-image-in-container)
 - [Usage](#usage)
-  - [zps -r](#zps--r)
-  - [zps -x](#zps--x)
-  - [zps -l](#zps--l)
-  - [zps -p](#zps--p)
+  - [zps -r](#zps--r--reap)
+  - [zps -s](#zps--s--signal)
+  - [zps -p](#zps--p--prompt)
+  - [zps -q](#zps--q--quiet)
+  - [zps -n](#zps--n--no-color)
 - [TODO(s)](#todos)
 - [License](#license)
 - [Copyright](#copyright)
@@ -94,6 +95,9 @@ sudo make install
 
 ### GCC
 
+With manual compilation, you might want to also pass
+`-DNDEBUG` to disable runtime assertions.
+
 ```
 cd src/ && gcc -s -O3 -Wall -Wextra -pedantic zps.c -o zps
 ```
@@ -119,36 +123,35 @@ Usage:
   zps [options]
 
 Options:
-  -r, --reap      reap zombie processes
-  -x, --lreap     list and reap zombie processes
-  -l, --list      list zombie processes only
-  -p, --prompt    show prompt for selecting processes
-  -f, --fd <num>  set maximum file descriptors (default: 15)
-  -s, --silent    run in silent mode
-  -v, --version   show version
-  -h, --help      show help
+  -v, --version        show version
+  -h, --help           show help
+  -a, --all            list all user-space processes
+  -r, --reap           reap zombie processes
+  -s, --signal   <sig> signal to be used on zombie parents
+  -p, --prompt         show prompt for selecting processes
+  -q, --quiet          reap in quiet mode
+  -n, --no-color       disable color output
 ```
 
-### zps -r
+### zps -r/--reap
 
-![zps -r](https://user-images.githubusercontent.com/24392180/66898345-b68f7800-f001-11e9-86d7-694772a46ab7.gif)
+![zps -r](assets/demo-reap.gif)
 
-### zps -x
+### zps -s/--signal
 
-![zps -x](https://user-images.githubusercontent.com/24392180/66898624-34ec1a00-f002-11e9-9d5a-dde84c925119.gif)
+![zps -s](assets/demo-signal.gif)
 
-### zps -l
+### zps -p/--prompt
 
-![zps -l](https://user-images.githubusercontent.com/24392180/67201180-5f791100-f40e-11e9-8ff6-fcbbca443e9a.gif)
+![zps -p](assets/demo-prompt.gif)
 
-### zps -p
+### zps -q/--quiet
 
-![zps -p](https://user-images.githubusercontent.com/24392180/67624534-3c999300-f83a-11e9-95e4-46c3ce586197.gif)
+![zps -q](assets/demo-quiet.gif)
 
-## TODO(s)
+### zps -n/--no-color
 
-- Improve listing processes for long process names.
-- Send `SIGCHLD` signal to the parent instead of terminating it.
+![zps -n](assets/demo-no-color.gif)
 
 ## License
 
@@ -156,4 +159,4 @@ GNU General Public License v3.0 only ([GPL-3.0-only](https://www.gnu.org/license
 
 ## Copyright
 
-Copyright © 2019-2023, [Orhun Parmaksız](mailto:orhunparmaksiz@gmail.com)
+Copyright © 2019-2024, [Orhun Parmaksız](mailto:orhunparmaksiz@gmail.com)
